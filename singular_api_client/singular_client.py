@@ -10,6 +10,10 @@ logger = logging.getLogger("singular_client")
 
 
 class SingularClient(object):
+    """
+    Client for Singular Reporting API
+    See https://developers.singular.net/v2.0/reference
+    """
     BASE_API_URL = "https://api.singular.net/api/"
 
     def __init__(self, api_key):
@@ -20,6 +24,8 @@ class SingularClient(object):
                    dimensions=(Dimensions.APP, Dimensions.OS, Dimensions.SOURCE),
                    metrics=(Metrics.ADN_COST, Metrics.ADN_IMPRESSIONS),
                    discrepancy_metrics=(DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS),
+                   cohort_metrics=None,
+                   cohort_periods=None,
                    source=None,
                    app=None,
                    display_alignment=True,
@@ -37,6 +43,10 @@ class SingularClient(object):
         :param metrics: A list of metrics, for example [Metrics.ADN_IMPRESSIONS, Metrics.ADN_COST]
         :param discrepancy_metrics: List of metrics that may help detect discrepancies between Ad Networks
          and Attribution providers, for example [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
+        :param cohort_metrics: list of cohorted metrics by name or ID; A full list can be retrieved through
+         the Cohorted Metrics endpoint
+        :param cohort_periods: list of cohorted periods; A full list can be retrieved through the Cohorted Metrics
+          endpoint
         :param source: optional list of source names to filter by
         :param app: optional list of app names to filter by
         :param display_alignment: When set to True, results will include an alignment row to account for any difference
@@ -46,8 +56,8 @@ class SingularClient(object):
         :return: report_id
         """
         query_dict = self.__build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                  discrepancy_metrics, app, source, display_alignment, time_breakdown,
-                                                  country_code_format)
+                                                  discrepancy_metrics, cohort_metrics, cohort_periods, app,
+                                                  source, display_alignment, time_breakdown, country_code_format)
         response = self._api_get("v2.0/reporting", params=query_dict)
         return response
 
@@ -56,6 +66,8 @@ class SingularClient(object):
                             dimensions=(Dimensions.APP, Dimensions.OS, Dimensions.SOURCE),
                             metrics=(Metrics.ADN_COST, Metrics.ADN_IMPRESSIONS),
                             discrepancy_metrics=(DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS),
+                            cohort_metrics=None,
+                            cohort_periods=None,
                             source=None,
                             app=None,
                             display_alignment=True,
@@ -73,6 +85,10 @@ class SingularClient(object):
         :param metrics: A list of metrics, for example [Metrics.ADN_IMPRESSIONS, Metrics.ADN_COST]
         :param discrepancy_metrics: List of metrics that may help detect discrepancies between Ad Networks
          and Attribution providers, for example [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
+        :param cohort_metrics: list of cohorted metrics by name or ID; A full list can be retrieved through
+         the Cohorted Metrics endpoint
+        :param cohort_periods: list of cohorted periods; A full list can be retrieved through the Cohorted Metrics
+          endpoint
         :param source: optional list of source names to filter by
         :param app: optional list of app names to filter by
         :param display_alignment: When set to True, results will include an alignment row to account for any difference
@@ -83,8 +99,8 @@ class SingularClient(object):
         """
 
         query_dict = self.__build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                  discrepancy_metrics, app, source, display_alignment, time_breakdown,
-                                                  country_code_format)
+                                                  discrepancy_metrics, cohort_metrics, cohort_periods, app,
+                                                  source, display_alignment, time_breakdown, country_code_format)
 
         response = self._api_post("v2.0/create_async_report", data=query_dict)
         parsed_response = response.json()
@@ -183,14 +199,18 @@ class SingularClient(object):
             return "false"
 
     @classmethod
-    def __build_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics, app,
-                                source, display_alignment, time_breakdown, country_code_format):
+    def __build_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
+                                cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
+                                country_code_format):
         """
         build reporting query format that can be used by either the `create_async_report` or `reporting` endpoints
         """
         cls.__verify_param("format", format, Format)
         cls.__verify_param("time_breakdown", time_breakdown, TimeBreakdown)
         cls.__verify_param("country_code_format", country_code_format, CountryCodeFormat)
+
+        if cohort_metrics or cohort_periods and (not cohort_metrics or not cohort_periods):
+            raise ArgumentValidationException("`cohort_metrics` must be used with `cohort_periods`")
 
         dimensions_request = ",".join(dimensions)
         metrics_request = ",".join(metrics)
@@ -210,6 +230,10 @@ class SingularClient(object):
             query_dict.update({'source': [",".join(source)]})
         if app is not None:
             query_dict.update({'app': [",".join(app)]})
+        if cohort_metrics:
+            query_dict.update({'cohort_metrics': [",".join(cohort_metrics)]})
+        if cohort_periods:
+            query_dict.update({'cohort_periods': [",".join(cohort_metrics)]})
         return query_dict
 
     @staticmethod
