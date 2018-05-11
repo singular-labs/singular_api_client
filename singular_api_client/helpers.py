@@ -85,3 +85,38 @@ class CohortMetricsResponse(object):
 
     def __repr__(self):
         return "<Periods: %s, Metrics: %s>" % (self.periods, [repr(i) for i in self.metrics])
+
+
+class DataSourceAvailabilityResponse(object):
+    def __init__(self, username, status, is_empty_data, is_active_last_30_days, last_updated_utc,
+                 source, is_available, **extra):
+        self.username = username
+        self.status = status
+        self.is_empty_data = is_empty_data
+        self.is_active_last_30_days = is_active_last_30_days
+        self.last_updated_utc = last_updated_utc
+        self.source = source
+        self.is_available = is_available
+        self.__extra = extra
+
+    @staticmethod
+    def parse_list(response_list):
+        ret = []
+        for value in response_list:
+            ret.append(DataSourceAvailabilityResponse(**value))
+        return ret
+
+    def __repr__(self):
+        return "<DataSourceAvailability: %(source)s (%(username)s) - %(status)s, is_available=%(is_available)s, " \
+               "last_updated_utc=%(last_updated_utc)s, is_empty_data=%(is_empty_data)s, " \
+               "is_active_last_30_days=%(is_active_last_30_days)s>" % self.__dict__
+
+
+class DataAvailabilityResponse(object):
+    def __init__(self, endpoint_response):
+        self.is_all_data_available = endpoint_response["is_all_data_available"]
+        self.data_sources = DataSourceAvailabilityResponse.parse_list(endpoint_response["data_sources"])
+
+    def __repr__(self):
+        return "<DataAvailability: is_all_data_available=%s, data_sources = %s >" % (self.is_all_data_available,
+                                                                                     repr(self.data_sources))
