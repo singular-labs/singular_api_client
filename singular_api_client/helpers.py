@@ -101,6 +101,9 @@ class DataSourceAvailabilityResponse(object):
 
     @staticmethod
     def parse_list(response_list):
+        """
+        :rtype: list[DataSourceAvailabilityResponse]
+        """
         ret = []
         for value in response_list:
             ret.append(DataSourceAvailabilityResponse(**value))

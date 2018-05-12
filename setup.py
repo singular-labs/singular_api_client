@@ -14,5 +14,6 @@ setup(
         'singular'],
     install_requires=[
         'requests',
-        'pytz'
+        'pytz',
+        'retyring'
     ])

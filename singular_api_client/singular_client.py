@@ -2,7 +2,7 @@ import requests
 import logging
 
 from params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
-from singular_api_client.exceptions import ArgumentValidationException, APIException
+from singular_api_client.exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
 from singular_api_client.helpers import ReportStatusResponse, CustomDimension, CohortMetricsResponse, \
     DataAvailabilityResponse
 
@@ -128,7 +128,7 @@ class SingularClient(object):
           Dimension IDs can then be used in Reporting API queries to group the data using Custom Dimensions
 
         :return: list of `CustomDimension` instances
-        :rtype: list(CustomDimension)
+        :rtype: list[CustomDimension]
         """
         response = self._api_get("custom_dimensions")
         parsed_response = response.json()
@@ -158,6 +158,7 @@ class SingularClient(object):
         :param group_by_source: When set to `True`, results will be grouped by source
         :type group_by_source: bool
         :return: List of modified dates, or dict(Network-->List of modified dates) if group_by_source=True
+        :rtype: dict[str, list[str]]
         """
 
         query_dict = dict(timestamp=utc_timestamp, group_by_source=self.__bool(group_by_source))
@@ -255,7 +256,6 @@ class SingularClient(object):
         return self.__api_request("POST", endpoint, data=data, json=json)
 
     def __api_request(self, method, endpoint, **kwargs):
-
         url = self.BASE_API_URL + endpoint
         headers = {"Authorization": self.api_key}
 
@@ -265,7 +265,11 @@ class SingularClient(object):
                     dict(method=method, url=url, kwargs=repr(kwargs), code=response.status_code))
 
         if not response.ok:
-            raise APIException("%s failed with code = %s, payload = %s" % (
-                endpoint, response.status_code, response.text))
+            if response.status_code is None or response.status_code >= 500 < 600:
+                raise UnexpectedAPIException("%s failed with code = %s, payload = %s" % (
+                    endpoint, response.status_code, response.text))
+            else:
+                raise APIException("%s failed with code = %s, payload = %s" % (
+                    endpoint, response.status_code, response.text))
 
         return response
