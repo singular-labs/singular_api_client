@@ -1,10 +1,11 @@
 import requests
 import logging
 
-from params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
-from singular_api_client.exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
-from singular_api_client.helpers import ReportStatusResponse, CustomDimension, CohortMetricsResponse, \
+from .params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
+from .exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
+from .helpers import ReportStatusResponse, CustomDimension, CohortMetricsResponse, \
     DataAvailabilityResponse
+from .version import __version__
 
 logger = logging.getLogger("singular_client")
 
@@ -257,7 +258,8 @@ class SingularClient(object):
 
     def __api_request(self, method, endpoint, **kwargs):
         url = self.BASE_API_URL + endpoint
-        headers = {"Authorization": self.api_key}
+        headers = {"Authorization": self.api_key,
+                   'User-Agent': 'Singular API Client v%s' % __version__}
 
         response = requests.request(method, url, headers=headers, **kwargs)
 

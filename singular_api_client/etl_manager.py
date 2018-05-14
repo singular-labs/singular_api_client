@@ -4,16 +4,16 @@ import os
 import logging
 import datetime
 import pytz
-import gevent.pool
-import gevent.monkey
-import gevent.timeout
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import requests
 from retrying import retry
 
-from singular_api_client.exceptions import retry_if_unexpected_error, UnexpectedAPIException, APIException
-from singular_client import SingularClient
-from params import Dimensions, Metrics, DiscrepancyMetrics, CountryCodeFormat, Format, TimeBreakdown
+from .exceptions import retry_if_unexpected_error, UnexpectedAPIException, APIException
+from .singular_client import SingularClient
+from .params import Dimensions, Metrics, DiscrepancyMetrics, CountryCodeFormat, Format, TimeBreakdown
+
+UTC_TIMEZONE = pytz.UTC
 
 DEFAULT_DIMENSIONS = (Dimensions.APP, Dimensions.OS, Dimensions.SOURCE, Dimensions.ADN_CAMPAIGN_NAME,
                       Dimensions.ADN_CREATIVE_ID, Dimensions.ADN_CAMPAIGN_ID, Dimensions.ADN_CREATIVE_NAME,
@@ -23,14 +23,13 @@ DEFAULT_DIMENSIONS = (Dimensions.APP, Dimensions.OS, Dimensions.SOURCE, Dimensio
 REPORT_TIMEOUT = 60 * 10
 
 logger = logging.getLogger("etl_manager")
-gevent.monkey.patch_all()
 
 MAX_REPORTS_TO_QUEUE = 30
 
 
 class State(object):
     def __init__(self):
-        self.last_refresh_utc_datetime = datetime.datetime(2018, 1, 1, tzinfo=pytz.UTC)
+        self.last_refresh_utc_datetime = datetime.datetime(2018, 1, 1, tzinfo=UTC_TIMEZONE)
 
 
 class ETLManager(object):
@@ -143,7 +142,7 @@ class ETLManager(object):
         """
         last_modified_timestamp = self.state.last_refresh_utc_datetime
         utc_timestamp = last_modified_timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        next_timestamp = datetime.datetime.now(pytz.UTC)
+        next_timestamp = datetime.datetime.now(UTC_TIMEZONE)
 
         logger.info("Querying last_modified_dated since %s" % last_modified_timestamp)
 
@@ -162,13 +161,10 @@ class ETLManager(object):
                     reports_to_run.append((source, date))
 
         logger.info("Adding %d reports to the queue" % len(reports_to_run))
-        pool = gevent.pool.Pool(MAX_REPORTS_TO_QUEUE)
+        pool = ThreadPoolExecutor(MAX_REPORTS_TO_QUEUE)
 
-        def gevent_async_report(report_tuple):
-            source, date = report_tuple
-            return gevent.timeout.with_timeout(REPORT_TIMEOUT, self.run_async_report, source, date)
-
-        _ = list(pool.imap_unordered(gevent_async_report, reports_to_run))
+        futures = [pool.submit(self.run_async_report, source, date) for (source, date) in reports_to_run]
+        _ = [r.result() for r in as_completed(futures, timeout=REPORT_TIMEOUT)]
         logger.info("successfully downloaded %d reports" % len(reports_to_run))
 
         self.state.last_refresh_utc_datetime = next_timestamp
@@ -185,7 +181,7 @@ class ETLManager(object):
         """
         if os.path.exists(self.STATE_LOCATION):
             logger.info("loading existing state")
-            return pickle.load(file(self.STATE_LOCATION, 'rb'))
+            return pickle.load(open(self.STATE_LOCATION, 'rb'))
         else:
             logger.info("no state found, creating a new state")
             return State()

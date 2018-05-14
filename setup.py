@@ -1,5 +1,5 @@
 from setuptools import setup
-from singular_api_client import __version__
+from singular_api_client.version import __version__
 
 setup(
     name='singular_api_client',
@@ -15,5 +15,5 @@ setup(
     install_requires=[
         'requests',
         'pytz',
-        'retyring'
+        'retrying'
     ])
