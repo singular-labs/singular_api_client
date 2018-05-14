@@ -121,5 +121,8 @@ class DataAvailabilityResponse(object):
         self.data_sources = DataSourceAvailabilityResponse.parse_list(endpoint_response["data_sources"])
 
     def __repr__(self):
-        return "<DataAvailability: is_all_data_available=%s, data_sources = %s >" % (self.is_all_data_available,
-                                                                                     repr(self.data_sources))
+        lines = ["<DataAvailability: is_all_data_available=%s, see individual statuses below>"
+                 % self.is_all_data_available]
+        for data_source_status in self.data_sources:
+            lines.append("\t" + repr(data_source_status))
+        return "\n".join(lines)
