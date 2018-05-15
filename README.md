@@ -1,5 +1,5 @@
 # Singular API Client Library for Python
-This is the official Singular Reporting API Python. This library allows easy BI integration of Singular.
+This is the official Singular Reporting API Python Library. This library allows easy BI integration of Singular.
 
 ## Table of Contents
 
