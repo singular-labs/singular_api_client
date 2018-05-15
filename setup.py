@@ -25,5 +25,6 @@ For more information please visit our github repo: https://github.com/singular-l
         'requests',
         'pytz',
         'retrying',
-        'futures'
-    ])
+    ],
+    extras_require={':python_version == "2.7"': ['futures']}
+)
