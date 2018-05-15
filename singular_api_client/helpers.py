@@ -84,7 +84,15 @@ class CohortMetricsResponse(object):
         self.metrics = CohortMetric.parse_list(value_from_endpoint["metrics"])
 
     def __repr__(self):
-        return "<Periods: %s, Metrics: %s>" % (self.periods, [repr(i) for i in self.metrics])
+        if len(self.metrics) > 0:
+            lines = ["<periods = %s>" % self.periods,
+                     "<metrics = ["]
+            for metric in self.metrics:
+                lines.append("\t%s" % repr(metric))
+            lines.append("]>")
+            return "\n".join(lines)
+        else:
+            return "<Cohort Metrics: No Custom Metrics Found>"
 
 
 class DataSourceAvailabilityResponse(object):
@@ -121,7 +129,7 @@ class DataAvailabilityResponse(object):
         self.data_sources = DataSourceAvailabilityResponse.parse_list(endpoint_response["data_sources"])
 
     def __repr__(self):
-        lines = ["<DataAvailability: is_all_data_available=%s, see individual statuses below>"
+        lines = ["<DataAvailability: is_all_data_available=%s, data_sources=see individual statuses below>"
                  % self.is_all_data_available]
         for data_source_status in self.data_sources:
             lines.append("\t" + repr(data_source_status))

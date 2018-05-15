@@ -54,13 +54,20 @@ class SingularClient(object):
          between campaign and creative statistics
         :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
         :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
-        :return: report_id
+        :return: parsed JSON response dict if format is Format.JSON or unicode if format is Format.CSV
+        :rtype: requests.models.Response
         """
         query_dict = self.__build_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                   discrepancy_metrics, cohort_metrics, cohort_periods, app,
                                                   source, display_alignment, time_breakdown, country_code_format)
         response = self._api_get("v2.0/reporting", params=query_dict)
-        return response
+        if format == Format.JSON:
+            self.__verify_legacy_error(response.json())
+            return response.json()
+        elif format == Format.CSV:
+            return response.text
+        else:
+            raise ArgumentValidationException("unsupported format")
 
     def create_async_report(self, start_date, end_date,
                             format=Format.JSON,
@@ -180,8 +187,8 @@ class SingularClient(object):
         :type format: str
         :param display_non_active_sources: Active source is defined as a source that has data in the last 30 days
         :type display_non_active_sources: bool
-        :return: DataAvailabilityResponse
-        :rtype: DataAvailabilityResponse
+        :return: DataAvailabilityResponse if format==Format.JSON, or unicode if format==Format.CSV
+        :rtype: DataAvailabilityResponse | unicode
         """
 
         self.__verify_param("format", format, Format)
@@ -189,9 +196,14 @@ class SingularClient(object):
                           display_non_active_sources=self.__bool(display_non_active_sources))
 
         response = self._api_get("v2.0/data_availability_status", params=query_dict)
-        parsed_response = response.json()
-        self.__verify_legacy_error(parsed_response)
-        return DataAvailabilityResponse(parsed_response["value"])
+        if format == Format.JSON:
+            parsed_response = response.json()
+            self.__verify_legacy_error(parsed_response)
+            return DataAvailabilityResponse(parsed_response["value"])
+        elif format == Format.CSV:
+            return response.text
+        else:
+            raise ArgumentValidationException("unsupported format")
 
     @staticmethod
     def __bool(value):
