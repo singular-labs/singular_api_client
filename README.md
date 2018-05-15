@@ -48,7 +48,7 @@ while True:
 
 #### Using `SingularClient`
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 from singular_api_client.params import Dimensions, Metrics, Format, DiscrepancyMetrics
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
@@ -103,7 +103,7 @@ The full list of dimensions consists of:
 #### User Defined Custom Dimensions
 You can get the configured custom dimensions using `get_custom_dimensions` for example:
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 custom_dimensions = client.get_custom_dimensions()
@@ -127,7 +127,7 @@ Can be configured in Singular [Custom Dimensions Configuration](https://app.sing
 ### Cohort Metrics & Periods
 You can get the available cohort metrics & periods by using the `get_cohort_metrics` method, for example:
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 cohort_metrics = client.get_cohort_metrics()
@@ -189,14 +189,14 @@ if __name__ == "__main__":
 ## SingularClient - Low Level API
 **Start with initializing a `SingularClient` object**
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 ```
 
 ### Run a simple report
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 from singular_api_client.params import Format, Dimensions
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
@@ -214,7 +214,7 @@ Results: {u'status': 0, u'substatus': 0, u'value': {u'results': [{u'adn_campaign
 
 ### Enqueue async report
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 start_date = "2018-05-08"
@@ -228,7 +228,7 @@ Report ID: u'd5a36f830ad305475dac28eff0e36174'
 ```
 ### Check status of async report
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 report_id = "d5a36f830ad305475dac28eff0e36174"
@@ -243,7 +243,7 @@ Report Status: <ReportStatus DONE: report_id=d5a36f830ad305475dac28eff0e36174, d
 ### User Defined Custom Dimensions
 You can get the configured custom dimensions using `get_custom_dimensions` for example:
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 custom_dimensions = client.get_custom_dimensions()
@@ -266,7 +266,7 @@ Can be configured in Singular [Custom Dimensions Configuration](https://app.sing
 ### Cohort Metrics & Periods
 You can get the available cohort metrics & periods by using the `get_cohort_metrics` method, for example:
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 cohort_metrics = client.get_cohort_metrics()
@@ -287,7 +287,7 @@ Output:
 Use this endpoint to detect retroactive data changes by source and date, to run narrowed-down queries using filters
  that only pull the modified data, for example:
  ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 last_modified_dates = client.get_last_modified_dates("2018-05-01 10:12:53")
@@ -303,7 +303,7 @@ Use this endpoint to determine whether for a given day, data is available for ea
 This data can then be used to determine whether to pull data, for example:
 
 ```python
-from singular_api_client import SingularClient
+from singular_api_client.singular_client import SingularClient
 API_KEY = "YOUR API KEY"
 client = SingularClient(API_KEY)
 data_availability_status = client.data_availability_status("2018-05-01")
