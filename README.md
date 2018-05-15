@@ -62,7 +62,7 @@ response = client.run_report("2018-03-15", "2018-03-18",
                              format=Format.JSON)
 print(response)                    
 ```
-
+Output:
 ```
 {u'status': 0, u'substatus': 0, u'value': {u'results': [{u'source': u'Mdotm', u'adn_clicks': 39761.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 4563.0}, {u'source': u'AppLovin', u'adn_clicks': 33516.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 3826.0}, {u'source': u'Sponsorpay', u'adn_clicks': 49461.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5801.0}, {u'source': u'Apple Search Ads', u'adn_clicks': 47751.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 7244.0}, {u'source': u'AdColony', u'adn_clicks': 48546.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5300.0}, {u'source': u'Iron Source', u'adn_clicks': 47436.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5294.0}, {u'source': u'AdWords', u'adn_clicks': 42921.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 7067.0}, {u'source': u'Twitter', u'adn_clicks': 48613.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5678.0}, {u'source': u'Inmobi', u'adn_clicks': 49645.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5861.0}, {u'source': u'Snapchat', u'adn_clicks': 42069.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5193.0}, {u'source': u'Vungle', u'adn_clicks': 56291.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 6558.0}, {u'source': u'Facebook', u'adn_clicks': 45984.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 7243.0}], u'report_id': u'3eb7be4925b1489b9c92207e3c9c1ca1'}}
 ```
@@ -110,7 +110,8 @@ custom_dimensions = client.get_custom_dimensions()
 print(custom_dimensions)
 ``` 
 
-```python
+Output:
+```
 [<CustomDimension: Incentivized (id=8e10d3891cba7051a76062541641325b)>,
  <CustomDimension: Team (id=430164a52cdb2b9dff48b06a080a3d3f)>]
 ```
@@ -132,7 +133,7 @@ client = SingularClient(API_KEY)
 cohort_metrics = client.get_cohort_metrics()
 print("Cohort Metrics: %s" % repr(cohort_metrics))
 ```
-
+Output:
 ```
 <periods = [u'1d', u'7d', u'14d', u'30d', u'actual']>
 <metrics = [
@@ -206,7 +207,7 @@ dimensions = (Dimensions.COUNTRY_FIELD, Dimensions.ADN_CAMPAIGN_NAME)
 results = client.run_report(start_date, end_date, dimensions=dimensions, format=Format.JSON)
 print("Results: %s" % repr(results))
 ```
-
+Output:
 ```
 Results: {u'status': 0, u'substatus': 0, u'value': {u'results': [{u'adn_campaign_name': u'Simba_Android', u'end_date': u'2018-03-18', u'adn_installs': 97.0, u'country_field': u'DEU', u'adn_clicks': 743.0, u'start_date': u'2018-03-15'}, {u'adn_campaign_name': u'Simba_Search', u'end_date': u'2018-03-18', u'adn_installs': 95.0, u'country_field': u'GBR', u'adn_clicks': 907.0, u'start_date': u'2018-03-15'}, {u'adn_campaign_name': u'Simba iOS', u'end_date': u'2018-03-18', u'adn_installs': 194.0, u'country_field': u'CAN', u'adn_clicks': 1413.0, u'start_date': u'2018-03-15'}, {u'adn_campaign_name': u'Simba_Markets', u'end_date': u'2018-03-18', u'adn_installs': 12.0, u'country_field': u'IND', u'adn_clicks': 141.0, u'start_date': u'2018-03-15'}, {u'adn_campaign_name ...
 ```
@@ -221,6 +222,7 @@ end_date = "2018-05-09"
 report_id = client.create_async_report(start_date, end_date)
 print("Report ID: %s" % repr(report_id))
 ```
+Output:
 ```
 Report ID: u'd5a36f830ad305475dac28eff0e36174'
 ```
@@ -233,6 +235,7 @@ report_id = "d5a36f830ad305475dac28eff0e36174"
 report_status = client.get_report_status(report_id)
 print("Report Status: %s" % repr(report_status))
 ```
+Output:
 ```
 Report Status: <ReportStatus DONE: report_id=d5a36f830ad305475dac28eff0e36174, download_url=https://singular-reports-results.s3.amazonaws.com/yourorg/d5a36f830ad305475dac28eff0e36174?Signature=XXXX&Expires=XXXX&AWSAccessKeyId=XXXX, url_expires_in=XXX>
 ```
@@ -246,8 +249,8 @@ client = SingularClient(API_KEY)
 custom_dimensions = client.get_custom_dimensions()
 print(custom_dimensions)
 ``` 
-
-```python
+Output:
+```
 [<CustomDimension: Incentivized (id=8e10d3891cba7051a76062541641325b)>,
  <CustomDimension: Team (id=430164a52cdb2b9dff48b06a080a3d3f)>]
 ```
@@ -269,7 +272,7 @@ client = SingularClient(API_KEY)
 cohort_metrics = client.get_cohort_metrics()
 print("Cohort Metrics: %s" % repr(cohort_metrics))
 ```
-
+Output:
 ```
 <periods = [u'1d', u'7d', u'14d', u'30d', u'actual']>
 <metrics = [
@@ -290,7 +293,7 @@ client = SingularClient(API_KEY)
 last_modified_dates = client.get_last_modified_dates("2018-05-01 10:12:53")
 print("Last Modified Dates: %s" % repr(last_modified_dates))
 ```
-
+Output:
 ```
 Last Modified Dates: {u'Facebook': [u'2018-04-28', ...], 'AdWords': ['2018-04-27', ...]}
 ```
@@ -306,7 +309,7 @@ client = SingularClient(API_KEY)
 data_availability_status = client.data_availability_status("2018-05-01")
 print("Data Availability Status: %s" % repr(data_availability_status))
 ```
-
+Output:
 ```
 Data Availability Status: <DataAvailability: is_all_data_available=True, data_sources=see individual statuses below>
 	<DataSourceAvailability: Facebook (wyatt@westworld.com) - data populated, is_available=True, last_updated_utc=2018-05-08T09:51:11, is_empty_data=False, is_active_last_30_days=True>
