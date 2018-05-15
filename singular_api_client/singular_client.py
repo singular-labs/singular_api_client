@@ -13,7 +13,9 @@ logger = logging.getLogger("singular_client")
 class SingularClient(object):
     """
     Client for Singular Reporting API
-    See https://developers.singular.net/v2.0/reference
+    See:
+        - https://github.com/singular-labs/singular_api_client
+        - https://developers.singular.net/v2.0/reference
     """
     BASE_API_URL = "https://api.singular.net/api/"
 
