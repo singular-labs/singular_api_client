@@ -14,7 +14,7 @@ This is the official Singular Reporting API Python Library. This library allows 
 ## Installation
 The library can be installed using pip:
 ```
-pip install sinuglar-api-client
+pip install singular-api-client
 ```
 
 ## Quickstart
