@@ -235,7 +235,7 @@ class SingularClient(object):
             start_date=start_date,
             end_date=end_date,
             dimensions=dimensions_request,
-            metrics_request=metrics_request,
+            metrics=metrics_request,
             discrepancy_metrics=discrepancy_metrics_request,
             display_alignment=display_alignment,
             format=format,
