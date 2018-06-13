@@ -191,7 +191,7 @@ class ETLManager(object):
         Commit the current state to disk
         """
         logger.info("Saving state")
-        pickle.dump(self.state, file(self.STATE_LOCATION, 'wb'))
+        pickle.dump(self.state, open(self.STATE_LOCATION, 'wb'))
         return
 
     @retry(wait_exponential_multiplier=1000, wait_exponential_max=60000,
