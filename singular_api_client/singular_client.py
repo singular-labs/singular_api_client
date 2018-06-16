@@ -249,7 +249,7 @@ class SingularClient(object):
         if cohort_metrics:
             query_dict.update({'cohort_metrics': [",".join(cohort_metrics)]})
         if cohort_periods:
-            query_dict.update({'cohort_periods': [",".join(cohort_metrics)]})
+            query_dict.update({'cohort_periods': [",".join(cohort_periods)]})
         return query_dict
 
     @staticmethod
