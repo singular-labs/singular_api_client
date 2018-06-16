@@ -225,7 +225,7 @@ class SingularClient(object):
         cls.__verify_param("time_breakdown", time_breakdown, TimeBreakdown)
         cls.__verify_param("country_code_format", country_code_format, CountryCodeFormat)
 
-        if cohort_metrics or cohort_periods and (not cohort_metrics or not cohort_periods):
+        if (cohort_metrics or cohort_periods) and (not cohort_metrics or not cohort_periods):
             raise ArgumentValidationException("`cohort_metrics` must be used with `cohort_periods`")
 
         dimensions_request = ",".join(dimensions)
