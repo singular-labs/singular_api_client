@@ -164,7 +164,11 @@ class ETLManager(object):
         pool = ThreadPoolExecutor(MAX_REPORTS_TO_QUEUE)
 
         futures = [pool.submit(self.run_async_report, source, date) for (source, date) in reports_to_run]
-        _ = [r.result() for r in as_completed(futures, timeout=REPORT_TIMEOUT)]
+        try:
+            _ = [r.result() for r in as_completed(futures, timeout=REPORT_TIMEOUT)]
+        except Exception:
+            logger.exception("failed executing future")
+            raise
         logger.info("successfully downloaded %d reports" % len(reports_to_run))
 
         self.state.last_refresh_utc_datetime = next_timestamp

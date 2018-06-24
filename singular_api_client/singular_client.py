@@ -1,5 +1,6 @@
 import requests
 import logging
+import json
 
 from .params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
 from .exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
@@ -33,7 +34,8 @@ class SingularClient(object):
                    app=None,
                    display_alignment=True,
                    time_breakdown=TimeBreakdown.ALL,
-                   country_code_format=CountryCodeFormat.ISO3
+                   country_code_format=CountryCodeFormat.ISO3,
+                   filters=None
                    ):
         """
         Use this endpoint to run custom queries in the Singular platform for aggregated statistics.
@@ -45,9 +47,9 @@ class SingularClient(object):
         :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source]
         :param metrics: A list of metrics, for example [Metrics.ADN_IMPRESSIONS, Metrics.ADN_COST]
         :param discrepancy_metrics: List of metrics that may help detect discrepancies between Ad Networks
-         and Attribution providers, for example [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
+          and Attribution providers, for example [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
         :param cohort_metrics: list of cohorted metrics by name or ID; A full list can be retrieved through
-         the Cohorted Metrics endpoint
+          the Cohorted Metrics endpoint
         :param cohort_periods: list of cohorted periods; A full list can be retrieved through the Cohorted Metrics
           endpoint
         :param source: optional list of source names to filter by
@@ -56,12 +58,16 @@ class SingularClient(object):
          between campaign and creative statistics
         :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
         :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
+        :param filters: a JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
+          by app or source. The relation between different elements of the list is an AND relation.
+          A full list of the dimensions you can filter by and potential values can be retrieved from the
+          `get_reporting_filters` endpoint.
         :return: parsed JSON response dict if format is Format.JSON or unicode if format is Format.CSV
-        :rtype: requests.models.Response
         """
         query_dict = self.__build_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                   discrepancy_metrics, cohort_metrics, cohort_periods, app,
-                                                  source, display_alignment, time_breakdown, country_code_format)
+                                                  source, display_alignment, time_breakdown, country_code_format,
+                                                  filters)
         response = self._api_get("v2.0/reporting", params=query_dict)
         if format == Format.JSON:
             self.__verify_legacy_error(response.json())
@@ -82,7 +88,8 @@ class SingularClient(object):
                             app=None,
                             display_alignment=True,
                             time_breakdown=TimeBreakdown.ALL,
-                            country_code_format=CountryCodeFormat.ISO3
+                            country_code_format=CountryCodeFormat.ISO3,
+                            filters=None
                             ):
         """
         Use this endpoint to run custom queries in the Singular platform for aggregated statistics without keeping
@@ -105,12 +112,17 @@ class SingularClient(object):
          between campaign and creative statistics
         :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
         :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
+        :param filters: a JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
+          by app or source. The relation between different elements of the list is an AND relation.
+          A full list of the dimensions you can filter by and potential values can be retrieved from the
+          `get_reporting_filters` endpoint.
         :return: report_id
         """
 
         query_dict = self.__build_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                   discrepancy_metrics, cohort_metrics, cohort_periods, app,
-                                                  source, display_alignment, time_breakdown, country_code_format)
+                                                  source, display_alignment, time_breakdown, country_code_format,
+                                                  filters)
 
         response = self._api_post("v2.0/create_async_report", data=query_dict)
         parsed_response = response.json()
@@ -207,6 +219,40 @@ class SingularClient(object):
         else:
             raise ArgumentValidationException("unsupported format")
 
+    def get_reporting_filters(self):
+        """
+        This endpoint returns all available filters and their respective available options.
+        Please note that filters can differ between users, per the configured.
+
+        example response:
+        {
+            "dimensions": [
+              {
+                "name": "os",
+                "display_name": "OS",
+                "values": [
+                    {"name": 4, "display_name": "Android"},
+                  {"name": 1, "display_name": "iOS"}
+                ],
+              },
+              {
+                "name": "source",
+                "display_name": "Source",
+                "values": [
+                  {"name": "adwords", "display_name": "AdWords"}
+                ]
+              }
+            ]
+          }
+
+        :return: dictionary of available filters and their respected values
+        :rtype: dict[str, list[dict]]
+        """
+        response = self._api_get("v2.0/reporting/filters")
+        parsed_response = response.json()
+        self.__verify_legacy_error(parsed_response)
+        return parsed_response["value"]
+
     @staticmethod
     def __bool(value):
         if value:
@@ -217,13 +263,16 @@ class SingularClient(object):
     @classmethod
     def __build_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
                                 cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
-                                country_code_format):
+                                country_code_format, filters):
         """
         build reporting query format that can be used by either the `create_async_report` or `reporting` endpoints
         """
         cls.__verify_param("format", format, Format)
         cls.__verify_param("time_breakdown", time_breakdown, TimeBreakdown)
         cls.__verify_param("country_code_format", country_code_format, CountryCodeFormat)
+
+        if filters is None:
+            filters = []
 
         if (cohort_metrics or cohort_periods) and (not cohort_metrics or not cohort_periods):
             raise ArgumentValidationException("`cohort_metrics` must be used with `cohort_periods`")
@@ -240,16 +289,26 @@ class SingularClient(object):
             display_alignment=display_alignment,
             format=format,
             time_breakdown=time_breakdown,
-            country_code_format=country_code_format
+            country_code_format=country_code_format,
         )
         if source is not None:
-            query_dict.update({'source': [",".join(source)]})
+            if not isinstance(source, list):
+                sources = [source]
+            else:
+                sources = source
+            filters.append({"dimension": "source", "operator": "in", "values": sources})
         if app is not None:
-            query_dict.update({'app': [",".join(app)]})
+            if not isinstance(app, list):
+                apps = [app]
+            else:
+                apps = app
+            filters.append({"dimension": "app", "operator": "in", "values": apps})
         if cohort_metrics:
             query_dict.update({'cohort_metrics': [",".join(cohort_metrics)]})
         if cohort_periods:
             query_dict.update({'cohort_periods': [",".join(cohort_periods)]})
+        if filters:
+            query_dict["filters"] = json.dumps(filters)
         return query_dict
 
     @staticmethod
