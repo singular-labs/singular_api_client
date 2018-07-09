@@ -35,6 +35,8 @@ class Dimensions(object):
     CREATIVE_IS_VIDEO = "creative_is_video"
     TRACKER_NAME = "tracker_name"
     RETENTION = "retention"
+    START_DATE = "start_date"
+    END_DATE = "end_date"
 
 
 class Metrics(object):

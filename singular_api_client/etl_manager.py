@@ -29,7 +29,7 @@ MAX_REPORTS_TO_QUEUE = 30
 
 class State(object):
     def __init__(self):
-        self.last_refresh_utc_datetime = datetime.datetime(2018, 1, 1, tzinfo=UTC_TIMEZONE)
+        self.last_refresh_utc_datetime = None
 
 
 class ETLManager(object):
@@ -140,32 +140,19 @@ class ETLManager(object):
         """
         Call this method every time you want to sync your BI with Singular
         """
-        last_modified_timestamp = self.state.last_refresh_utc_datetime
-        utc_timestamp = last_modified_timestamp.strftime("%Y-%m-%d %H:%M:%S")
         next_timestamp = datetime.datetime.now(UTC_TIMEZONE)
-
-        logger.info("Querying last_modified_dated since %s" % last_modified_timestamp)
-
-        last_modified = self.client.get_last_modified_dates(utc_timestamp,
-                                                            group_by_source=True)
-
-        min_date = datetime.datetime.now() - datetime.timedelta(days=self.max_update_window_days)
-        reports_to_run = []
-        for source, dates in six.iteritems(last_modified):
-            logger.info("updating %s, %d dates to update" % (source, len(dates)))
-            for date in dates:
-                parsed_date = datetime.datetime.strptime(date, "%Y-%m-%d")
-                if parsed_date < min_date:
-                    logger.info("%s - skipping date %s since it's outside update window" % (source, parsed_date))
-                else:
-                    reports_to_run.append((source, date))
+        reports_to_run = self._get_reports_to_queue()
 
         logger.info("Adding %d reports to the queue" % len(reports_to_run))
         pool = ThreadPoolExecutor(MAX_REPORTS_TO_QUEUE)
 
         futures = [pool.submit(self.run_async_report, source, date) for (source, date) in reports_to_run]
+        complete_counter = 0
         try:
-            _ = [r.result() for r in as_completed(futures, timeout=REPORT_TIMEOUT)]
+            for r in as_completed(futures, timeout=REPORT_TIMEOUT):
+                _ = r.result()
+                complete_counter += 1
+                logger.info("Got result for report #%d out of a total of %d" % (complete_counter, len(reports_to_run)))
         except Exception:
             logger.exception("failed executing future")
             raise
@@ -235,3 +222,47 @@ class ETLManager(object):
 
         # Process the new report
         self.handle_new_data(source, date, report_status.download_url, report_id)
+
+    @staticmethod
+    def _encode_timestamp_to_date(timestamp):
+        return timestamp.strftime("%Y-%m-%d")
+
+    def _get_reports_to_queue(self):
+        last_modified_timestamp = self.state.last_refresh_utc_datetime
+        min_date = datetime.datetime.now() - datetime.timedelta(days=self.max_update_window_days)
+        reports_to_run = []
+
+        if last_modified_timestamp is not None:
+            utc_timestamp = last_modified_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            logger.info("Querying last_modified_dated since %s" % last_modified_timestamp)
+            last_modified = self.client.get_last_modified_dates(utc_timestamp,
+                                                                group_by_source=True)
+            for source, dates in six.iteritems(last_modified):
+                logger.info("updating %s, %d dates to update" % (source, len(dates)))
+                for date in dates:
+                    parsed_date = datetime.datetime.strptime(date, "%Y-%m-%d")
+                    if parsed_date < min_date:
+                        logger.info("%s - skipping date %s since it's outside update window" % (source, parsed_date))
+                    else:
+                        reports_to_run.append((source, date))
+        else:
+            logger.info("last_refresh_utc_datetime = None, querying full source x day breakdown")
+            max_date = datetime.datetime.now()
+
+            results = self.client.run_report(start_date=self._encode_timestamp_to_date(min_date),
+                                             end_date=self._encode_timestamp_to_date(max_date),
+                                             format=Format.JSON,
+                                             dimensions=[Dimensions.SOURCE],
+                                             metrics=self.metrics,
+                                             discrepancy_metrics=self.discrepancy_metrics,
+                                             cohort_metrics=self.cohort_metrics,
+                                             cohort_periods=self.cohort_periods,
+                                             time_breakdown=TimeBreakdown.DAY,
+                                             country_code_format=self.country_code_format,
+                                             display_alignment=self.display_alignment
+                                             )
+
+            for row in results["value"]["results"]:
+                reports_to_run.append((row[Dimensions.SOURCE], row[Dimensions.START_DATE]))
+
+        return reports_to_run
