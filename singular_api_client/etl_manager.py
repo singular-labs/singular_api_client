@@ -228,27 +228,20 @@ class ETLManager(object):
         return timestamp.strftime("%Y-%m-%d")
 
     def _get_reports_to_queue(self):
+        """
+        Builds a list of (source, date) tuples that needs to be queried.
+
+        :return: list of (source, date) tuples, for example [("AdWords", "2018-08-01"), ...]
+        :rtype: list[(str, str)]
+        """
         last_modified_timestamp = self.state.last_refresh_utc_datetime
         min_date = datetime.datetime.now() - datetime.timedelta(days=self.max_update_window_days)
         reports_to_run = []
 
-        if last_modified_timestamp is not None:
-            utc_timestamp = last_modified_timestamp.strftime("%Y-%m-%d %H:%M:%S")
-            logger.info("Querying last_modified_dated since %s" % last_modified_timestamp)
-            last_modified = self.client.get_last_modified_dates(utc_timestamp,
-                                                                group_by_source=True)
-            for source, dates in six.iteritems(last_modified):
-                logger.info("updating %s, %d dates to update" % (source, len(dates)))
-                for date in dates:
-                    parsed_date = datetime.datetime.strptime(date, "%Y-%m-%d")
-                    if parsed_date < min_date:
-                        logger.info("%s - skipping date %s since it's outside update window" % (source, parsed_date))
-                    else:
-                        reports_to_run.append((source, date))
-        else:
-            logger.info("last_refresh_utc_datetime = None, querying full source x day breakdown")
+        if last_modified_timestamp is None:
+            logger.info("This is the first time we pull data, so we can't use the `last_modified_dates` endpoint")
             max_date = datetime.datetime.now()
-
+            logger.info("Run a one-time [Source x Date] report to find out which reports to pull")
             results = self.client.run_report(start_date=self._encode_timestamp_to_date(min_date),
                                              end_date=self._encode_timestamp_to_date(max_date),
                                              format=Format.JSON,
@@ -264,5 +257,18 @@ class ETLManager(object):
 
             for row in results["value"]["results"]:
                 reports_to_run.append((row[Dimensions.SOURCE], row[Dimensions.START_DATE]))
+        else:
+            utc_timestamp = last_modified_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            logger.info("Querying last_modified_dated since %s" % last_modified_timestamp)
+            last_modified = self.client.get_last_modified_dates(utc_timestamp,
+                                                                group_by_source=True)
+            for source, dates in six.iteritems(last_modified):
+                logger.info("updating %s, %d dates to update" % (source, len(dates)))
+                for date in dates:
+                    parsed_date = datetime.datetime.strptime(date, "%Y-%m-%d")
+                    if parsed_date < min_date:
+                        logger.info("%s - skipping date %s since it's outside update window" % (source, parsed_date))
+                    else:
+                        reports_to_run.append((source, date))
 
         return reports_to_run
