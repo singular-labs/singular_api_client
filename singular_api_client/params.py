@@ -22,6 +22,7 @@ class Dimensions(object):
     PUBLISHER_ID = "publisher_id"
     PUBLISHER_SITE_ID = "publisher_site_id"
     PUBLISHER_SITE_NAME = "publisher_site_name"
+    ADN_PUBLISHER_ID = "adn_publisher_id"
     ADN_CREATIVE_NAME = "adn_creative_name"
     ADN_CREATIVE_ID = "adn_creative_id"
     SINGULAR_CREATIVE_ID = "singular_creative_id"
