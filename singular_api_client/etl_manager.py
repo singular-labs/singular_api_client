@@ -13,6 +13,7 @@ from .exceptions import retry_if_unexpected_error, UnexpectedAPIException, APIEx
 from .singular_client import SingularClient
 from .params import Dimensions, Metrics, DiscrepancyMetrics, CountryCodeFormat, Format, TimeBreakdown
 
+
 UTC_TIMEZONE = pytz.UTC
 
 DEFAULT_DIMENSIONS = (Dimensions.APP, Dimensions.OS, Dimensions.SOURCE, Dimensions.ADN_CAMPAIGN_NAME,
@@ -20,11 +21,11 @@ DEFAULT_DIMENSIONS = (Dimensions.APP, Dimensions.OS, Dimensions.SOURCE, Dimensio
                       Dimensions.PLATFORM, Dimensions.ADN_SUB_ADNETWORK_NAME, Dimensions.ADN_SUB_CAMPAIGN_NAME,
                       Dimensions.ADN_SUB_CAMPAIGN_ID, Dimensions.SITE_PUBLIC_ID, Dimensions.CREATIVE_IMAGE)
 
-REPORT_TIMEOUT = 60 * 10
+REPORT_TIMEOUT = 60 * 30
 
 logger = logging.getLogger("etl_manager")
 
-MAX_REPORTS_TO_QUEUE = 30
+MAX_REPORTS_TO_QUEUE = 10
 
 
 class State(object):
@@ -101,6 +102,7 @@ class ETLManager(object):
         self.display_alignment = display_alignment
         self.max_update_window_days = max_update_window_days
         self.state = self.load_state()
+        self.should_stop = False
 
     def handle_new_data(self, source, date, download_url, report_id):
         """
@@ -154,7 +156,8 @@ class ETLManager(object):
                 complete_counter += 1
                 logger.info("Got result for report #%d out of a total of %d" % (complete_counter, len(reports_to_run)))
         except Exception:
-            logger.exception("failed executing future")
+            self.should_stop = True
+            logger.exception("failed executing future, stopping everything now")
             raise
         logger.info("successfully downloaded %d reports" % len(reports_to_run))
 
@@ -195,6 +198,10 @@ class ETLManager(object):
         :param source: Partner name
         :param date: requested date formatted in "%Y-%m-%d"
         """
+        if self.should_stop:
+            logger.debug("stopping now")
+            return
+        reports_queue_time = time.time()
         report_id = self.client.create_async_report(start_date=date,
                                                     end_date=date,
                                                     format=self.format,
@@ -209,9 +216,15 @@ class ETLManager(object):
                                                     display_alignment=self.display_alignment
                                                     )
         while True:
+            if self.should_stop:
+                logger.info("run_async_report: interrupting report_id = %s" % report_id)
+                return
             report_status = self.client.get_report_status(report_id)
+            running_for = time.time() - reports_queue_time
             if report_status.status in [report_status.QUEUED, report_status.STARTED]:
-                logger.info("waiting for report source = %s, date = %s" % (source, date))
+                logger.info(
+                    "waiting for report source = %s, date = %s, status = %s\n report_id = %s, queued %d seconds ago" %
+                    (source, date, report_status.status, report_id, running_for))
                 time.sleep(10)
             else:
                 break
