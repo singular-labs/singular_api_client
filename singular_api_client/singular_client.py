@@ -2,6 +2,7 @@ import requests
 import logging
 import json
 
+from singular_api_client.helpers import CohortMetric
 from .params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
 from .exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
 from .helpers import ReportStatusResponse, CustomDimension, CohortMetricsResponse, \
@@ -304,9 +305,14 @@ class SingularClient(object):
                 apps = app
             filters.append({"dimension": "app", "operator": "in", "values": apps})
         if cohort_metrics:
-            query_dict.update({'cohort_metrics': [",".join(cohort_metrics)]})
+            if isinstance(cohort_metrics, list):
+                cohort_metrics = [(i.name if isinstance(i, CohortMetric) else i) for i in cohort_metrics]
+                cohort_metrics = ",".join(cohort_metrics)
+            query_dict.update({'cohort_metrics': cohort_metrics})
         if cohort_periods:
-            query_dict.update({'cohort_periods': [",".join(cohort_periods)]})
+            if isinstance(cohort_periods, list):
+                cohort_periods = ",".join(cohort_periods)
+            query_dict.update({'cohort_periods': cohort_periods})
         if filters:
             query_dict["filters"] = json.dumps(filters)
         return query_dict
