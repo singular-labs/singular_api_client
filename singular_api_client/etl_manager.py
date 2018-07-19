@@ -21,7 +21,7 @@ DEFAULT_DIMENSIONS = (Dimensions.APP, Dimensions.OS, Dimensions.SOURCE, Dimensio
                       Dimensions.PLATFORM, Dimensions.ADN_SUB_ADNETWORK_NAME, Dimensions.ADN_SUB_CAMPAIGN_NAME,
                       Dimensions.ADN_SUB_CAMPAIGN_ID, Dimensions.SITE_PUBLIC_ID, Dimensions.CREATIVE_IMAGE)
 
-REPORT_TIMEOUT = 60 * 30
+REPORT_TIMEOUT = 60 * 60 * 8
 
 logger = logging.getLogger("etl_manager")
 
