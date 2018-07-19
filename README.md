@@ -148,11 +148,13 @@ Output:
 ## ETL Manager
 
 **Helps keeping your internal BI synced with Singular Reporting by**
+
 1. Using the `last_modified_dates` endpoint to get a list of dates that were updated since the last refresh
 2. Enqueues async reports to pull the updated information
 3. Storing your data partitioned by "Source x Date" into `data_dumps` folder
 
 **Extending `ETLManager` to suit your needs**
+
 The provided `ETLManager` implementation is a naive one which you can use as-is or you can inherit and extend by overriding `handle_new_data`, for example:
 ```python
 import time
