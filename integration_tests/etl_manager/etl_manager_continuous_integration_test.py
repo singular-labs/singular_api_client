@@ -1,14 +1,16 @@
-import click
-import time
 from singular_api_client.etl_manager import ETLManager
 from singular_api_client.params import Dimensions, Metrics, Format, DiscrepancyMetrics, TimeBreakdown
 from singular_api_client.singular_client import SingularClient
+
+import click
+import time
 import logging
 import pytz
 import datetime
 import sys
 import glob
 import json
+import tqdm
 from collections import defaultdict
 
 ONE_HOUR = 60 * 60
@@ -113,7 +115,8 @@ configure_logging(all_loggers)
 
 def get_dumped_total_per_source_date(start_date, end_date):
     source_date2metrics = defaultdict(lambda: {i: 0.0 for i in all_metrics_to_check})
-    for cur_date in daterange(start_date, end_date):
+    dates = list(daterange(start_date, end_date))
+    for cur_date in tqdm.tqdm(dates, desc="iterating over dates"):
         files = glob.glob("data_dumps/*.%s.json" % encode_date(cur_date))
         for file_path in files:
             data = json.loads(open(file_path, 'rb').read().decode("utf8"))
@@ -124,11 +127,14 @@ def get_dumped_total_per_source_date(start_date, end_date):
     return dict(source_date2metrics)
 
 
-def accuracy_check(api_key, start_date, end_date):
+def accuracy_check(api_key, start_date, end_date, max_error_rate):
     client = SingularClient(api_key)
     logger.info("running accuracy check: %s -> %s" % (start_date, end_date))
+
+    logger.info("aggregating local results")
     local_totals = get_dumped_total_per_source_date(start_date, end_date)
 
+    logger.info("querying remote report (also aggregated)")
     results = client.run_report(encode_date(start_date),
                                 encode_date(end_date),
                                 format=Format.JSON,
@@ -137,6 +143,7 @@ def accuracy_check(api_key, start_date, end_date):
                                 discrepancy_metrics=compare_discrepancy_metrics,
                                 time_breakdown=TimeBreakdown.DAY
                                 )
+    logger.info("comparing remote vs local")
     issues = []
     for row in results["value"]["results"]:
         cur_date = row[Dimensions.START_DATE]
@@ -146,7 +153,7 @@ def accuracy_check(api_key, start_date, end_date):
         for metric in all_metrics_to_check:
             server_value = server_totals[metric] if server_totals[metric] else 0
             delta = abs(cur_local_totals[metric] - server_value)
-            if delta > 10 and delta / float(server_value) > 0.05:
+            if delta > 10 and delta / float(server_value) > max_error_rate:
                 issue = (cur_date, cur_source, metric, cur_local_totals[metric], server_value)
                 issues.append(issue)
                 logger.error("found issue on %s, %s, %s (local %d != server %d)" % issue)
@@ -159,7 +166,8 @@ def accuracy_check(api_key, start_date, end_date):
 @click.command("etl_continuous_test")
 @click.argument("api_key", envvar='API_KEY')
 @click.option("--days-back", default=30, type=int)
-def etl_continuous_test(api_key, days_back):
+@click.option("--max-error-rate", default=0.05, type=float, help="fail if error rate is above this rate")
+def etl_continuous_test(api_key, days_back, max_error_rate):
     manager = ETLManager(api_key,
                          dimensions=dimensions,
                          metrics=metrics,
@@ -170,7 +178,7 @@ def etl_continuous_test(api_key, days_back):
         manager.refresh()
         start_date = datetime.date.today() - datetime.timedelta(days=days_back)
         end_date = datetime.date.today() - datetime.timedelta(days=1)
-        accuracy_check(api_key, start_date, end_date)
+        accuracy_check(api_key, start_date, end_date, max_error_rate)
         logger.info("sleeping for one hour")
         time.sleep(ONE_HOUR)
 
