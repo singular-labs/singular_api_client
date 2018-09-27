@@ -103,6 +103,17 @@ class ETLManager(object):
         self.max_update_window_days = max_update_window_days
         self.state = self.load_state()
         self.should_stop = False
+        session = requests.Session()
+        retry = Retry(
+            connect=5,
+            backoff_factor=0.5,
+            status_forcelist=(500, 502, 504),
+            method_whitelist=('GET', 'POST')
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        self.session = session
 
     def handle_new_data(self, source, date, download_url, report_id):
         """
@@ -124,7 +135,7 @@ class ETLManager(object):
         :param report_id: Singular Internal Report ID, can be used for auditing
         :type date: str
         """
-        r = requests.get(download_url)
+        r = self.session.get(download_url)
         if not r.ok:
             if r.status_code is None or (500 <= r.status_code < 600):
                 raise UnexpectedAPIException("unexpected error when downloading report_id=%s, url=%s" % (

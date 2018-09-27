@@ -23,6 +23,17 @@ class SingularClient(object):
 
     def __init__(self, api_key):
         self.api_key = api_key
+        session = requests.Session()
+        retry = Retry(
+            connect=5,
+            backoff_factor=0.5,
+            status_forcelist=(500, 502, 504),
+            method_whitelist=('GET', 'POST')
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        self.session = session
 
     def run_report(self, start_date, end_date,
                    format=Format.JSON,
@@ -340,7 +351,7 @@ class SingularClient(object):
         headers = {"Authorization": self.api_key,
                    'User-Agent': 'Singular API Client v%s' % __version__}
 
-        response = requests.request(method, url, headers=headers, **kwargs)
+        response = self.session.request(method, url, headers=headers, **kwargs)
 
         logger.info("%(method)s %(url)s, kwargs = %(kwargs)s --> code = %(code)s" %
                     dict(method=method, url=url, kwargs=repr(kwargs), code=response.status_code))
