@@ -1,4 +1,4 @@
-class SingularClientException(BaseException):
+class SingularClientException(Exception):
     pass
 
 
