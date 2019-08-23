@@ -8,6 +8,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import requests
 from retrying import retry
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
 
 from .exceptions import retry_if_unexpected_error, UnexpectedAPIException, APIException
 from .singular_client import SingularClient
