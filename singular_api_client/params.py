@@ -23,6 +23,7 @@ class Dimensions(object):
     PUBLISHER_SITE_ID = "publisher_site_id"
     PUBLISHER_SITE_NAME = "publisher_site_name"
     ADN_PUBLISHER_ID = "adn_publisher_id"
+
     ADN_CREATIVE_NAME = "adn_creative_name"
     ADN_CREATIVE_ID = "adn_creative_id"
     SINGULAR_CREATIVE_ID = "singular_creative_id"
@@ -34,6 +35,18 @@ class Dimensions(object):
     CREATIVE_WIDTH = "creative_width"
     CREATIVE_HEIGHT = "creative_height"
     CREATIVE_IS_VIDEO = "creative_is_video"
+
+    CAMPAIGN_STATUS = "campaign_status"
+    STANDARDIZED_BID_STRATEGY = "standardized_bid_strategy"
+    BID_STRATEGY = "bid_strategy"
+    STANDARDIZED_BID_TYPE = "standardized_bid_type"
+    BID_TYPE = "bid_type"
+    CAMPAIGN_OBJECTIVE = "campaign_objective"
+    BID_AMOUNT = "bid_amount"
+    ORIGINAL_BID_AMOUNT = "original_bid_amount"
+    ORIGINAL_METADATA_CURRENCY = "original_metadata_currency"
+    MIN_ROAS = "min_roas"
+
     TRACKER_NAME = "tracker_name"
     RETENTION = "retention"
     START_DATE = "start_date"
