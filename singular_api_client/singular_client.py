@@ -22,8 +22,9 @@ class SingularClient(object):
         - https://developers.singular.net/v2.0/reference
     """
     BASE_API_URL = "https://api.singular.net/api/"
+    DEFAULT_HTTP_TIMEOUT = 60 * 5
 
-    def __init__(self, api_key):
+    def __init__(self, api_key, http_timeout=DEFAULT_HTTP_TIMEOUT):
         self.api_key = api_key
         session = requests.Session()
         retry = Retry(
@@ -35,6 +36,7 @@ class SingularClient(object):
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
         session.mount('https://', adapter)
+        self.default_http_timeout = http_timeout
         self.session = session
 
     def run_report(self, start_date, end_date,
@@ -353,7 +355,10 @@ class SingularClient(object):
         headers = {"Authorization": self.api_key,
                    'User-Agent': 'Singular API Client v%s' % __version__}
 
-        response = self.session.request(method, url, headers=headers, **kwargs)
+        response = self.session.request(method, url,
+                                        headers=headers,
+                                        timeout=self.default_http_timeout,
+                                        **kwargs)
 
         logger.info("%(method)s %(url)s, kwargs = %(kwargs)s --> code = %(code)s" %
                     dict(method=method, url=url, kwargs=repr(kwargs), code=response.status_code))
