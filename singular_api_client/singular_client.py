@@ -80,13 +80,13 @@ class SingularClient(object):
           `get_reporting_filters` endpoint.
         :return: parsed JSON response dict if format is Format.JSON or unicode if format is Format.CSV
         """
-        query_dict = self.__build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                  discrepancy_metrics, cohort_metrics, cohort_periods, app,
-                                                  source, display_alignment, time_breakdown, country_code_format,
-                                                  filters)
+        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
+                                                 discrepancy_metrics, cohort_metrics, cohort_periods, app,
+                                                 source, display_alignment, time_breakdown, country_code_format,
+                                                 filters)
         response = self._api_get("v2.0/reporting", params=query_dict)
         if format == Format.JSON:
-            self.__verify_legacy_error(response.json())
+            self._verify_legacy_error(response.json())
             return response.json()
         elif format == Format.CSV:
             return response.text
@@ -135,10 +135,10 @@ class SingularClient(object):
         :return: report_id
         """
 
-        query_dict = self.__build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                  discrepancy_metrics, cohort_metrics, cohort_periods, app,
-                                                  source, display_alignment, time_breakdown, country_code_format,
-                                                  filters)
+        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
+                                                 discrepancy_metrics, cohort_metrics, cohort_periods, app,
+                                                 source, display_alignment, time_breakdown, country_code_format,
+                                                 filters)
 
         response = self._api_post("v2.0/create_async_report", data=query_dict)
         parsed_response = response.json()
@@ -157,7 +157,7 @@ class SingularClient(object):
         params = {"report_id": report_id}
         response = self._api_get("v2.0/get_report_status", params=params)
         parsed_response = response.json()
-        self.__verify_legacy_error(parsed_response)
+        self._verify_legacy_error(parsed_response)
         return ReportStatusResponse(parsed_response["value"])
 
     def get_custom_dimensions(self):
@@ -170,7 +170,7 @@ class SingularClient(object):
         """
         response = self._api_get("custom_dimensions")
         parsed_response = response.json()
-        self.__verify_legacy_error(parsed_response)
+        self._verify_legacy_error(parsed_response)
         return CustomDimension.parse_list(parsed_response["value"]["custom_dimensions"])
 
     def get_cohort_metrics(self):
@@ -182,7 +182,7 @@ class SingularClient(object):
         """
         response = self._api_get("cohort_metrics")
         parsed_response = response.json()
-        self.__verify_legacy_error(parsed_response)
+        self._verify_legacy_error(parsed_response)
         return CohortMetricsResponse(parsed_response["value"])
 
     def get_last_modified_dates(self, utc_timestamp, group_by_source=True):
@@ -199,11 +199,11 @@ class SingularClient(object):
         :rtype: dict[str, list[str]]
         """
 
-        query_dict = dict(timestamp=utc_timestamp, group_by_source=self.__bool(group_by_source))
+        query_dict = dict(timestamp=utc_timestamp, group_by_source=self._bool(group_by_source))
 
         response = self._api_get("last_modified_dates", params=query_dict)
         parsed_response = response.json()
-        self.__verify_legacy_error(parsed_response)
+        self._verify_legacy_error(parsed_response)
         return parsed_response["value"]["results"]
 
     def data_availability_status(self, data_date, format=Format.JSON, display_non_active_sources=False):
@@ -221,14 +221,14 @@ class SingularClient(object):
         :rtype: DataAvailabilityResponse | unicode
         """
 
-        self.__verify_param("format", format, Format)
+        self._verify_param("format", format, Format)
         query_dict = dict(data_date=data_date, format=format,
-                          display_non_active_sources=self.__bool(display_non_active_sources))
+                          display_non_active_sources=self._bool(display_non_active_sources))
 
         response = self._api_get("v2.0/data_availability_status", params=query_dict)
         if format == Format.JSON:
             parsed_response = response.json()
-            self.__verify_legacy_error(parsed_response)
+            self._verify_legacy_error(parsed_response)
             return DataAvailabilityResponse(parsed_response["value"])
         elif format == Format.CSV:
             return response.text
@@ -266,26 +266,26 @@ class SingularClient(object):
         """
         response = self._api_get("v2.0/reporting/filters")
         parsed_response = response.json()
-        self.__verify_legacy_error(parsed_response)
+        self._verify_legacy_error(parsed_response)
         return parsed_response["value"]
 
     @staticmethod
-    def __bool(value):
+    def _bool(value):
         if value:
             return "true"
         else:
             return "false"
 
     @classmethod
-    def __build_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
-                                cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
-                                country_code_format, filters):
+    def _build_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
+                               cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
+                               country_code_format, filters):
         """
         build reporting query format that can be used by either the `create_async_report` or `reporting` endpoints
         """
-        cls.__verify_param("format", format, Format)
-        cls.__verify_param("time_breakdown", time_breakdown, TimeBreakdown)
-        cls.__verify_param("country_code_format", country_code_format, CountryCodeFormat)
+        cls._verify_param("format", format, Format)
+        cls._verify_param("time_breakdown", time_breakdown, TimeBreakdown)
+        cls._verify_param("country_code_format", country_code_format, CountryCodeFormat)
 
         if filters is None:
             filters = []
@@ -333,24 +333,24 @@ class SingularClient(object):
         return query_dict
 
     @staticmethod
-    def __verify_param(param_name, value, base_class):
+    def _verify_param(param_name, value, base_class):
         expected_values = base_class.__ALL_OPTIONS__
         if value not in expected_values:
             raise ArgumentValidationException("unexpected %s value %s, expected one of %s" %
                                               (param_name, repr(value), repr(expected_values)))
 
     @staticmethod
-    def __verify_legacy_error(parsed_response):
+    def _verify_legacy_error(parsed_response):
         if parsed_response["status"] != 0:
             raise APIException("API request failed: %s" % parsed_response["value"])
 
     def _api_get(self, endpoint, params=None):
-        return self.__api_request("GET", endpoint, params=params)
+        return self._api_request("GET", endpoint, params=params)
 
     def _api_post(self, endpoint, data=None, json=None):
-        return self.__api_request("POST", endpoint, data=data, json=json)
+        return self._api_request("POST", endpoint, data=data, json=json)
 
-    def __api_request(self, method, endpoint, **kwargs):
+    def _api_request(self, method, endpoint, **kwargs):
         url = self.BASE_API_URL + endpoint
         headers = {"Authorization": self.api_key,
                    'User-Agent': 'Singular API Client v%s' % __version__}
