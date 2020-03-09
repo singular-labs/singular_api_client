@@ -51,7 +51,8 @@ class SingularClient(object):
                    display_alignment=True,
                    time_breakdown=TimeBreakdown.ALL,
                    country_code_format=CountryCodeFormat.ISO3,
-                   filters=None
+                   filters=None,
+                   **kwargs
                    ):
         """
         Use this endpoint to run custom queries in the Singular platform for aggregated statistics.
@@ -83,7 +84,7 @@ class SingularClient(object):
         query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                  discrepancy_metrics, cohort_metrics, cohort_periods, app,
                                                  source, display_alignment, time_breakdown, country_code_format,
-                                                 filters)
+                                                 filters, **kwargs)
         response = self._api_get("v2.0/reporting", params=query_dict)
         if format == Format.JSON:
             self._verify_legacy_error(response.json())
@@ -105,7 +106,8 @@ class SingularClient(object):
                             display_alignment=True,
                             time_breakdown=TimeBreakdown.ALL,
                             country_code_format=CountryCodeFormat.ISO3,
-                            filters=None
+                            filters=None,
+                            **kwargs
                             ):
         """
         Use this endpoint to run custom queries in the Singular platform for aggregated statistics without keeping
@@ -138,7 +140,7 @@ class SingularClient(object):
         query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                  discrepancy_metrics, cohort_metrics, cohort_periods, app,
                                                  source, display_alignment, time_breakdown, country_code_format,
-                                                 filters)
+                                                 filters, **kwargs)
 
         response = self._api_post("v2.0/create_async_report", data=query_dict)
         parsed_response = response.json()
@@ -279,7 +281,7 @@ class SingularClient(object):
     @classmethod
     def _build_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
                                cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
-                               country_code_format, filters):
+                               country_code_format, filters, **kwargs):
         """
         build reporting query format that can be used by either the `create_async_report` or `reporting` endpoints
         """
@@ -330,6 +332,8 @@ class SingularClient(object):
             query_dict.update({'cohort_periods': cohort_periods})
         if filters:
             query_dict["filters"] = json.dumps(filters)
+
+        query_dict.update(kwargs)
         return query_dict
 
     @staticmethod
