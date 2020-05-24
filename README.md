@@ -368,6 +368,7 @@ class Dimensions(object):
     ADN_STATUS = "adn_status"
     ADN_CLICK_TYPE = "adn_click_type"
     KEYWORD = "keyword"
+    KEYWORD_ID = "keyword_id"
     PUBLISHER_ID = "publisher_id"
     PUBLISHER_SITE_ID = "publisher_site_id"
     PUBLISHER_SITE_NAME = "publisher_site_name"
