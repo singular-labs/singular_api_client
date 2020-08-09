@@ -4,9 +4,10 @@ import os
 import logging
 import datetime
 import pytz
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from itertools import chain
 from retrying import retry
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -262,40 +263,32 @@ class ETLManager(object):
         :rtype: list[(str, str)]
         """
         last_modified_timestamp = self.state.last_refresh_utc_datetime
-        min_date = datetime.datetime.now() - datetime.timedelta(days=self.max_update_window_days)
+
         reports_to_run = []
 
-        if last_modified_timestamp is None:
-            logger.info("This is the first time we pull data, so we can't use the `last_modified_dates` endpoint")
-            max_date = datetime.datetime.now()
-            logger.info("Run a one-time [Source x Date] report to find out which reports to pull")
-            results = self.client.run_report(start_date=self._encode_timestamp_to_date(min_date),
-                                             end_date=self._encode_timestamp_to_date(max_date),
-                                             format=Format.JSON,
-                                             dimensions=[Dimensions.SOURCE],
-                                             metrics=self.metrics,
-                                             discrepancy_metrics=self.discrepancy_metrics,
-                                             cohort_metrics=self.cohort_metrics,
-                                             cohort_periods=self.cohort_periods,
-                                             time_breakdown=TimeBreakdown.DAY,
-                                             country_code_format=self.country_code_format,
-                                             display_alignment=self.display_alignment
-                                             )
+        days_back = max(chain(self.cohort_periods or [], [30]))
 
-            for row in results["value"]["results"]:
-                reports_to_run.append((row[Dimensions.SOURCE], row[Dimensions.START_DATE]))
-        else:
-            utc_timestamp = last_modified_timestamp.strftime("%Y-%m-%d %H:%M:%S")
-            logger.info("Querying last_modified_dated since %s" % last_modified_timestamp)
-            last_modified = self.client.get_last_modified_dates(utc_timestamp,
-                                                                group_by_source=True)
-            for source, dates in six.iteritems(last_modified):
-                logger.info("updating %s, %d dates to update" % (source, len(dates)))
-                for date in dates:
-                    parsed_date = datetime.datetime.strptime(date, "%Y-%m-%d")
-                    if parsed_date < min_date:
-                        logger.info("%s - skipping date %s since it's outside update window" % (source, parsed_date))
-                    else:
-                        reports_to_run.append((source, date))
+        days_back = min(self.max_update_window_days, days_back)
+
+        max_date = datetime.datetime.now()
+        min_date = datetime.datetime.now() - datetime.timedelta(days=days_back)
+
+        logger.info("Run a one-time [Source x Date] report to find out which reports to pull")
+        results = self.client.run_report(start_date=self._encode_timestamp_to_date(min_date),
+                                         end_date=self._encode_timestamp_to_date(max_date),
+                                         format=Format.JSON,
+                                         dimensions=[Dimensions.SOURCE],
+                                         metrics=self.metrics,
+                                         discrepancy_metrics=self.discrepancy_metrics,
+                                         cohort_metrics=self.cohort_metrics,
+                                         cohort_periods=self.cohort_periods,
+                                         time_breakdown=TimeBreakdown.DAY,
+                                         country_code_format=self.country_code_format,
+                                         display_alignment=self.display_alignment
+                                         )
+
+        for row in results["value"]["results"]:
+            reports_to_run.append((row[Dimensions.SOURCE], max(row[Dimensions.START_DATE],
+                                                               self._encode_timestamp_to_date(max_date))))
 
         return reports_to_run
