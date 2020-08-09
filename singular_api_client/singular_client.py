@@ -24,8 +24,9 @@ class SingularClient(object):
     BASE_API_URL = "https://api.singular.net/api/"
     DEFAULT_HTTP_TIMEOUT = 60 * 5
 
-    def __init__(self, api_key, http_timeout=DEFAULT_HTTP_TIMEOUT):
+    def __init__(self, api_key, http_timeout=DEFAULT_HTTP_TIMEOUT, user_agent='Singular API Client v%s' % __version__):
         self.api_key = api_key
+        self.user_agent = user_agent
         session = requests.Session()
         retry = Retry(
             connect=5,
@@ -336,7 +337,7 @@ class SingularClient(object):
     def _api_request(self, method, endpoint, **kwargs):
         url = self.BASE_API_URL + endpoint
         headers = {"Authorization": self.api_key,
-                   'User-Agent': 'Singular API Client v%s' % __version__}
+                   'User-Agent': self.user_agent}
 
         response = self.session.request(method, url,
                                         headers=headers,

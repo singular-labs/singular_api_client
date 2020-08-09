@@ -16,6 +16,7 @@ from requests.packages.urllib3.util.retry import Retry
 from .exceptions import retry_if_unexpected_error, UnexpectedAPIException, APIException
 from .singular_client import SingularClient
 from .params import Dimensions, Metrics, DiscrepancyMetrics, CountryCodeFormat, Format, TimeBreakdown
+from .version import __version__
 
 
 UTC_TIMEZONE = pytz.UTC
@@ -95,7 +96,7 @@ class ETLManager(object):
             some times data update retroactively due to historical partner reconciliation. 
             The default recommended value is %(days)d days.    
         """ % dict(days=self.DEFAULT_UPDATE_WINDOW_DAYS)
-        self.client = SingularClient(api_key)
+        self.client = SingularClient(api_key, user_agent='Singular ETLManager v%s' % __version__)
         self.dimensions = dimensions
         self.metrics = metrics
         self.discrepancy_metrics = discrepancy_metrics
