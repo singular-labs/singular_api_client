@@ -4,67 +4,16 @@ This is the official Singular Reporting API Python Library. This library allows 
 ## Table of Contents
 
 - [Installation](#Installation)
-- [Quickstart](#quickstart)
 - [Reporting Interface Overview](#reporting-interface-overview)
-- [ETLManager - "High Level" management layer](#etl-manager)
-- [SingularClient - "Low Level" Singular Reporting API](#singularclient---low-level-api)
+- [SingularClient](#singularclient)
 - [Logging](#logging)
+- [ETLManager - DEPRECATED](#etl-manager---deprecated)
 - [Appendix - Supported Params](#appendix---supported-params)
 
 ## Installation
 The library can be installed using pip:
 ```
 pip install singular-api-client
-```
-
-## Quickstart
-This package consists of two main classes:
-
-- `ETL Manager` - Provides "high-level" management layer that handles syncing your BI with Singular.
-- `SingularClient` - Provides "low-level" wrapping of Singular Reporting API as documented in [Singular Developer Portal](https://developers.singular.net/v2.0/reference)
-
-#### Using `ETLManager`
-```python
-import time
-from singular_api_client.etl_manager import ETLManager
-from singular_api_client.params import Dimensions, Metrics, Format, DiscrepancyMetrics
-
-ONE_HOUR = 60*60
-API_KEY = "[API_KEY]"
-
-dimensions = [Dimensions.COUNTRY_FIELD, Dimensions.SOURCE, Dimensions.APP, Dimensions.PLATFORM]
-metrics = [Metrics.ADN_IMPRESSIONS, Metrics.ADN_COST]
-discrepancy_metrics = [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS,
-DiscrepancyMetrics.TRACKER_CLICKS, DiscrepancyMetrics.TRACKER_INSTALLS]
-manager = ETLManager(API_KEY,
-                     dimensions=dimensions,
-                     metrics=metrics,
-                     discrepancy_metrics=discrepancy_metrics,
-                     format=Format.JSON)
-while True:
-    manager.refresh()
-    time.sleep(ONE_HOUR) 
-``` 
-
-#### Using `SingularClient`
-```python
-from singular_api_client.singular_client import SingularClient
-from singular_api_client.params import Dimensions, Metrics, Format, DiscrepancyMetrics
-API_KEY = "YOUR API KEY"
-client = SingularClient(API_KEY)
-dimensions = [Dimensions.SOURCE]
-metrics = [Metrics.CUSTOM_CLICKS, Metrics.CUSTOM_INSTALLS, Metrics.ADN_COST]
-discrepancy_metrics = [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
-response = client.run_report("2018-03-15", "2018-03-18", 
-                             dimensions=dimensions,
-                             metrics=metrics,
-                             discrepancy_metrics=discrepancy_metrics,
-                             format=Format.JSON)
-print(response)                    
-```
-Output:
-```
-{u'status': 0, u'substatus': 0, u'value': {u'results': [{u'source': u'Mdotm', u'adn_clicks': 39761.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 4563.0}, {u'source': u'AppLovin', u'adn_clicks': 33516.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 3826.0}, {u'source': u'Sponsorpay', u'adn_clicks': 49461.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5801.0}, {u'source': u'Apple Search Ads', u'adn_clicks': 47751.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 7244.0}, {u'source': u'AdColony', u'adn_clicks': 48546.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5300.0}, {u'source': u'Iron Source', u'adn_clicks': 47436.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5294.0}, {u'source': u'AdWords', u'adn_clicks': 42921.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 7067.0}, {u'source': u'Twitter', u'adn_clicks': 48613.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5678.0}, {u'source': u'Inmobi', u'adn_clicks': 49645.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5861.0}, {u'source': u'Snapchat', u'adn_clicks': 42069.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 5193.0}, {u'source': u'Vungle', u'adn_clicks': 56291.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 6558.0}, {u'source': u'Facebook', u'adn_clicks': 45984.0, u'end_date': u'2018-03-18', u'start_date': u'2018-03-15', u'adn_installs': 7243.0}], u'report_id': u'3eb7be4925b1489b9c92207e3c9c1ca1'}}
 ```
 
 ## Reporting Interface Overview
@@ -145,50 +94,7 @@ Output:
 ```
  
 
-## ETL Manager
-
-**Helps keeping your internal BI synced with Singular Reporting by**
-
-1. Using the `last_modified_dates` endpoint to get a list of dates that were updated since the last refresh
-2. Enqueues async reports to pull the updated information
-3. Storing your data partitioned by "Source x Date" into `data_dumps` folder
-
-**Extending `ETLManager` to suit your needs**
-
-The provided `ETLManager` implementation is a naive one which you can use as-is or you can inherit and extend by overriding `handle_new_data`, for example:
-```python
-import time
-from singular_api_client.etl_manager import ETLManager
-
-ONE_HOUR = 60*60
-API_KEY = "[API_KEY]"
-
-class MyETLManager(ETLManager):
-    def handle_new_data(self, source, date, download_url, report_id):
-        """
-        :param source: Partner Name
-        :type source: str
-        :param date: a date string formatted as "%Y-%m-%d"
-        :type date: str
-        :param download_url: URL to download the report
-        :type date: str
-        :param report_id: Singular Internal Report ID, can be used for auditing
-        :type date: str    
-        """
-        # Your amazing implementation here
-        pass
-    
-def main():
-    manager = MyETLManager(API_KEY)
-    while True:
-        manager.refresh()
-        time.sleep(ONE_HOUR) 
-        
-if __name__ == "__main__":
-    main()        
-``` 
-
-## SingularClient - Low Level API
+## SingularClient
 **Start with initializing a `SingularClient` object**
 ```python
 from singular_api_client.singular_client import SingularClient
@@ -285,21 +191,6 @@ Output:
 ]>
 ```
 
-### Last Modified Dates
-Use this endpoint to detect retroactive data changes by source and date, to run narrowed-down queries using filters
- that only pull the modified data, for example:
- ```python
-from singular_api_client.singular_client import SingularClient
-API_KEY = "YOUR API KEY"
-client = SingularClient(API_KEY)
-last_modified_dates = client.get_last_modified_dates("2018-05-01 10:12:53")
-print("Last Modified Dates: %s" % repr(last_modified_dates))
-```
-Output:
-```
-Last Modified Dates: {u'Facebook': [u'2018-04-28', ...], 'AdWords': ['2018-04-27', ...]}
-```
-
 ### Data Availability Status
 Use this endpoint to determine whether for a given day, data is available for each of your data data sources.
 This data can then be used to determine whether to pull data, for example:
@@ -343,6 +234,13 @@ for cur_logger in singular_api_loggers:
     cur_logger.addHandler(ch)
     cur_logger.addHandler(file_handler)
 ```  
+
+## ETL Manager - DEPRECATED
+
+**As of version 6.0, the ETLManager is deprecated. The last_modified_dates endpoint that it uses will also be deprecated on December 16th 2020.**  
+If you want to keep using the ETLManager in the meantime, use an older version of the package.
+
+(This change does not affect Singular's ETL product)
 
 ## Appendix - Supported Params
 ### Singular built-in dimensions
