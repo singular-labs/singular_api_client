@@ -24,8 +24,9 @@ class SingularClient(object):
     BASE_API_URL = "https://api.singular.net/api/"
     DEFAULT_HTTP_TIMEOUT = 60 * 5
 
-    def __init__(self, api_key, http_timeout=DEFAULT_HTTP_TIMEOUT):
+    def __init__(self, api_key, http_timeout=DEFAULT_HTTP_TIMEOUT, user_agent='Singular API Client v%s' % __version__):
         self.api_key = api_key
+        self.user_agent = user_agent
         session = requests.Session()
         retry = Retry(
             connect=5,
@@ -187,27 +188,6 @@ class SingularClient(object):
         self._verify_legacy_error(parsed_response)
         return CohortMetricsResponse(parsed_response["value"])
 
-    def get_last_modified_dates(self, utc_timestamp, group_by_source=True):
-        """
-        Use this endpoint to detect retroactive data changes by source and date, to run narrowed-down queries
-          using filters that only pull the modified data
-
-        :param utc_timestamp: The UTC timestamp when you last pulled data from Singular,
-            formatted as "YYYY-mm-dd HH:mm:SS"
-        :type utc_timestamp: str
-        :param group_by_source: When set to `True`, results will be grouped by source
-        :type group_by_source: bool
-        :return: List of modified dates, or dict(Network-->List of modified dates) if group_by_source=True
-        :rtype: dict[str, list[str]]
-        """
-
-        query_dict = dict(timestamp=utc_timestamp, group_by_source=self._bool(group_by_source))
-
-        response = self._api_get("last_modified_dates", params=query_dict)
-        parsed_response = response.json()
-        self._verify_legacy_error(parsed_response)
-        return parsed_response["value"]["results"]
-
     def data_availability_status(self, data_date, format=Format.JSON, display_non_active_sources=False):
         """
         Use this endpoint to determine whether for a given day, data is available for each of your data data sources.
@@ -357,7 +337,7 @@ class SingularClient(object):
     def _api_request(self, method, endpoint, **kwargs):
         url = self.BASE_API_URL + endpoint
         headers = {"Authorization": self.api_key,
-                   'User-Agent': 'Singular API Client v%s' % __version__}
+                   'User-Agent': self.user_agent}
 
         response = self.session.request(method, url,
                                         headers=headers,
