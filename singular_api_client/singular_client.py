@@ -40,61 +40,6 @@ class SingularClient(object):
         self.default_http_timeout = http_timeout
         self.session = session
 
-    def run_report(self, start_date, end_date,
-                   format=Format.JSON,
-                   dimensions=(Dimensions.APP, Dimensions.OS, Dimensions.SOURCE),
-                   metrics=(Metrics.ADN_COST, Metrics.ADN_IMPRESSIONS),
-                   discrepancy_metrics=(DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS),
-                   cohort_metrics=None,
-                   cohort_periods=None,
-                   source=None,
-                   app=None,
-                   display_alignment=True,
-                   time_breakdown=TimeBreakdown.ALL,
-                   country_code_format=CountryCodeFormat.ISO3,
-                   filters=None,
-                   **kwargs
-                   ):
-        """
-        Use this endpoint to run custom queries in the Singular platform for aggregated statistics.
-          We recommend create_async_report for production ETL process
-
-        :param start_date: "YYYY-mm-dd" format date
-        :param end_date: "YYYY-mm-dd" format date
-        :param format: Format for returned results, for example Format.CSV
-        :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source]
-        :param metrics: A list of metrics, for example [Metrics.ADN_IMPRESSIONS, Metrics.ADN_COST]
-        :param discrepancy_metrics: List of metrics that may help detect discrepancies between Ad Networks
-          and Attribution providers, for example [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
-        :param cohort_metrics: list of cohorted metrics by name or ID; A full list can be retrieved through
-          the Cohorted Metrics endpoint
-        :param cohort_periods: list of cohorted periods; A full list can be retrieved through the Cohorted Metrics
-          endpoint
-        :param source: optional list of source names to filter by
-        :param app: optional list of app names to filter by
-        :param display_alignment: When set to True, results will include an alignment row to account for any difference
-         between campaign and creative statistics
-        :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
-        :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
-        :param filters: a JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
-          by app or source. The relation between different elements of the list is an AND relation.
-          A full list of the dimensions you can filter by and potential values can be retrieved from the
-          `get_reporting_filters` endpoint.
-        :return: parsed JSON response dict if format is Format.JSON or unicode if format is Format.CSV
-        """
-        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                 discrepancy_metrics, cohort_metrics, cohort_periods, app,
-                                                 source, display_alignment, time_breakdown, country_code_format,
-                                                 filters, **kwargs)
-        response = self._api_get("v2.0/reporting", params=query_dict)
-        if format == Format.JSON:
-            self._verify_legacy_error(response.json())
-            return response.json()
-        elif format == Format.CSV:
-            return response.text
-        else:
-            raise ArgumentValidationException("unsupported format")
-
     def create_async_report(self, start_date, end_date,
                             format=Format.JSON,
                             dimensions=(Dimensions.APP, Dimensions.OS, Dimensions.SOURCE),
