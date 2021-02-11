@@ -54,13 +54,9 @@ class Dimensions(object):
     END_DATE = "end_date"
 
     # ------ SKAN ------
-    SKAN_NETWORK_ID = "skan_network_id"
     SKAN_CAMPAIGN_ID = "skan_campaign_id"
-    SKAN_APP_ID = "skan_app_id"
-    SKAN_PUBLISHER_ID = "skan_publisher_id"
     SKAN_CONVERSION_VALUE = "skan_conversion_value"
-    SKAN_REDOWNLOADS = "skan_redownloads"
-    SKAN_VALIDATED = "skan_validated"
+
 
 class Metrics(object):
     ADN_IMPRESSIONS = "adn_impressions"

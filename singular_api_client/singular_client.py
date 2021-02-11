@@ -94,41 +94,30 @@ class SingularClient(object):
 
     def create_async_skadnetwork_raw_report(self, start_date, end_date,
                                             format=Format.JSON,
-                                            dimensions=(Dimensions.APP, Dimensions.SOURCE, Dimensions.SKAN_APP_ID,
-                                                        Dimensions.SKAN_NETWORK_ID, Dimensions.SKAN_VALIDATED,
-                                                        Dimensions.SKAN_REDOWNLOADS, Dimensions.SKAN_CAMPAIGN_ID,
-                                                        Dimensions.SKAN_CONVERSION_VALUE, Dimensions.SKAN_PUBLISHER_ID),
-                                            metrics=Metrics.SKAN_INSTALLS,
+                                            dimensions=(Dimensions.APP, Dimensions.SOURCE,
+                                                        Dimensions.SKAN_CAMPAIGN_ID, Dimensions.SKAN_CONVERSION_VALUE),
+                                            metrics=(Metrics.SKAN_INSTALLS,),
                                             discrepancy_metrics=None,
-                                            cohort_metrics=None,
-                                            cohort_periods=None,
                                             source=None,
                                             app=None,
-                                            display_alignment=None,
                                             time_breakdown=TimeBreakdown.ALL,
                                             country_code_format=CountryCodeFormat.ISO3,
                                             filters=None,
                                             **kwargs
                                             ):
         """
-        Use this endpoint to run custom queries in the Singular platform for aggregated skadnetwork raw data without keeping
-         a live connection throughout the request
+        Use this endpoint to run custom queries in the Singular platform for aggregated skadnetwork raw data without
+         keeping a live connection throughout the request
 
         :param start_date: "YYYY-mm-dd" format date
         :param end_date: "YYYY-mm-dd" format date
         :param format: Format for returned results, for example Format.CSV
-        :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source]
-        :param metrics: A list of metrics, for example [Metrics.ADN_IMPRESSIONS, Metrics.ADN_COST]
+        :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source, Dimensions.SKAN_CAMPAIGN_ID]
+        :param metrics: A list of metrics, for example [Metrics.SKAN_INSTALLS]
         :param discrepancy_metrics: List of metrics that may help detect discrepancies between Ad Networks
          and Attribution providers, for example [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
-        :param cohort_metrics: list of cohorted metrics by name or ID; A full list can be retrieved through
-         the Cohorted Metrics endpoint
-        :param cohort_periods: list of cohorted periods; A full list can be retrieved through the Cohorted Metrics
-          endpoint
         :param source: optional list of source names to filter by
         :param app: optional list of app names to filter by
-        :param display_alignment: When set to True, results will include an alignment row to account for any difference
-         between campaign and creative statistics
         :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
         :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
         :param filters: a JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
@@ -139,8 +128,8 @@ class SingularClient(object):
         """
 
         query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                 discrepancy_metrics, cohort_metrics, cohort_periods, app,
-                                                 source, display_alignment, time_breakdown, country_code_format,
+                                                 discrepancy_metrics, None, None, app,
+                                                 source, None, time_breakdown, country_code_format,
                                                  filters, **kwargs)
 
         response = self._api_post("v2.0/create_async_skadnetwork_raw_report", data=query_dict)
