@@ -53,6 +53,10 @@ class Dimensions(object):
     START_DATE = "start_date"
     END_DATE = "end_date"
 
+    # ------ SKAN ------
+    SKAN_CAMPAIGN_ID = "skan_campaign_id"
+    SKAN_CONVERSION_VALUE = "skan_conversion_value"
+
 
 class Metrics(object):
     ADN_IMPRESSIONS = "adn_impressions"
@@ -61,6 +65,7 @@ class Metrics(object):
     ADN_ESTIMATED_TOTAL_CONVERSIONS = "adn_estimated_total_conversions"
     CUSTOM_CLICKS = "custom_clicks"
     CUSTOM_INSTALLS = "custom_installs"
+    SKAN_INSTALLS = "skan_installs"
     CTR = "ctr"
     CVR = "cvr"
     ECPI = "ecpi"

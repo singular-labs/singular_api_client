@@ -92,6 +92,47 @@ class SingularClient(object):
         parsed_response = response.json()
         return parsed_response["value"]["report_id"]
 
+    def create_async_skadnetwork_raw_report(self, start_date, end_date,
+                                            format=Format.JSON,
+                                            dimensions=(Dimensions.APP, Dimensions.SOURCE,
+                                                        Dimensions.SKAN_CAMPAIGN_ID, Dimensions.SKAN_CONVERSION_VALUE),
+                                            metrics=(Metrics.SKAN_INSTALLS,),
+                                            source=None,
+                                            app=None,
+                                            time_breakdown=TimeBreakdown.ALL,
+                                            country_code_format=CountryCodeFormat.ISO3,
+                                            filters=None,
+                                            **kwargs
+                                            ):
+        """
+        Use this endpoint to run custom queries in the Singular platform for aggregated skadnetwork raw data without
+         keeping a live connection throughout the request
+
+        :param start_date: "YYYY-mm-dd" format date
+        :param end_date: "YYYY-mm-dd" format date
+        :param format: Format for returned results, for example Format.CSV
+        :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source, Dimensions.SKAN_CAMPAIGN_ID]
+        :param metrics: A list of metrics, for example [Metrics.SKAN_INSTALLS]
+        :param source: optional list of source names to filter by
+        :param app: optional list of app names to filter by
+        :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
+        :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
+        :param filters: a JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
+          by app or source. The relation between different elements of the list is an AND relation.
+          A full list of the dimensions you can filter by and potential values can be retrieved from the
+          `get_reporting_filters` endpoint.
+        :return: report_id
+        """
+
+        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
+                                                 None, None, None, app,
+                                                 source, None, time_breakdown, country_code_format,
+                                                 filters, **kwargs)
+
+        response = self._api_post("v2.0/create_async_skadnetwork_raw_report", data=query_dict)
+        parsed_response = response.json()
+        return parsed_response["value"]["report_id"]
+
     def get_report_status(self, report_id):
         """
         This endpoint returns the status of a given report.
