@@ -125,7 +125,7 @@ class SingularClient(object):
         """
 
         query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                 None, None, None, app,
+                                                 [], None, None, app,
                                                  source, None, time_breakdown, country_code_format,
                                                  filters, **kwargs)
 
