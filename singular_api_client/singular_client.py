@@ -102,6 +102,7 @@ class SingularClient(object):
                                             time_breakdown=TimeBreakdown.ALL,
                                             country_code_format=CountryCodeFormat.ISO3,
                                             filters=None,
+                                            skadnetwork_date_type=None,
                                             **kwargs
                                             ):
         """
@@ -121,15 +122,65 @@ class SingularClient(object):
           by app or source. The relation between different elements of the list is an AND relation.
           A full list of the dimensions you can filter by and potential values can be retrieved from the
           `get_reporting_filters` endpoint.
+        :param skadnetwork_date_type: the type of date you want the report to be based on:
+            - "skan_postback_date" (default) - the date the SKAN postback was sent by the device.
+            - "estimated_install_date" - the install date as calculated by
         :return: report_id
         """
 
-        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                 [], None, None, app,
-                                                 source, None, time_breakdown, country_code_format,
-                                                 filters, **kwargs)
+        query_dict = self._build_skan_reporting_query(start_date, end_date, format, dimensions, metrics,
+                                                      [], None, None, app,
+                                                      source, None, time_breakdown, country_code_format,
+                                                      filters, skadnetwork_date_type, None, **kwargs)
 
         response = self._api_post("v2.0/create_async_skadnetwork_raw_report", data=query_dict)
+        parsed_response = response.json()
+        return parsed_response["value"]["report_id"]
+
+    def create_async_skadnetwork_report(self, start_date, end_date,
+                                        format=Format.JSON,
+                                        dimensions=(Dimensions.APP, Dimensions.SOURCE,
+                                                    Dimensions.SKAN_CAMPAIGN_ID, Dimensions.SKAN_CONVERSION_VALUE),
+                                        metrics=(Metrics.SKAN_INSTALLS,),
+                                        source=None,
+                                        app=None,
+                                        time_breakdown=TimeBreakdown.ALL,
+                                        country_code_format=CountryCodeFormat.ISO3,
+                                        filters=None,
+                                        skadnetwork_date_type=None,
+                                        skan_events=None,
+                                        **kwargs
+                                        ):
+        """
+        Use this endpoint to run custom queries in the Singular platform for aggregated skadnetwork data without
+         keeping a live connection throughout the request
+
+        :param start_date: "YYYY-mm-dd" format date
+        :param end_date: "YYYY-mm-dd" format date
+        :param format: Format for returned results, for example Format.CSV
+        :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source, Dimensions.SKAN_CAMPAIGN_ID]
+        :param metrics: A list of metrics, for example [Metrics.SKAN_INSTALLS]
+        :param source: optional list of source names to filter by
+        :param app: optional list of app names to filter by
+        :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
+        :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
+        :param filters: a JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
+          by app or source. The relation between different elements of the list is an AND relation.
+          A full list of the dimensions you can filter by and potential values can be retrieved from the
+          `get_reporting_filters` endpoint.
+        :param skadnetwork_date_type: the type of date you want the report to be based on:
+            - "skan_postback_date" (default) - the date the SKAN postback was sent by the device.
+            - "estimated_install_date" - the install date as calculated by
+        :param skan_events: list of skan events by name or ID; A full list can be retrieved through
+            the Skan Events endpoint
+        :return: report_id
+        """
+
+        query_dict = self._build_skan_reporting_query(start_date, end_date, format, dimensions, metrics,
+                                                      [], None, None, app, source, None, time_breakdown,
+                                                      country_code_format, filters, skadnetwork_date_type, skan_events, **kwargs)
+
+        response = self._api_post("v2.0/create_async_skadnetwork_report", data=query_dict)
         parsed_response = response.json()
         return parsed_response["value"]["report_id"]
 
@@ -312,6 +363,22 @@ class SingularClient(object):
             query_dict["filters"] = json.dumps(filters)
 
         query_dict.update(kwargs)
+        return query_dict
+
+    def _build_skan_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
+                               cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
+                               country_code_format, filters, skadnetwork_date_type, skan_events, **kwargs):
+        query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
+                               cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
+                               country_code_format, filters, **kwargs)
+
+        if skadnetwork_date_type:
+            query_dict.update({'skadnetwork_date_type': skadnetwork_date_type})
+        if skan_events:
+            if isinstance(skan_events, list):
+                skan_events = [(i.name if isinstance(i, CohortMetric) else i) for i in skan_events]
+                skan_events = ",".join(skan_events)
+            query_dict.update({'skan_events': skan_events})
         return query_dict
 
     @staticmethod
