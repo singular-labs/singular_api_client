@@ -4,7 +4,7 @@ from requests.packages.urllib3.util.retry import Retry
 import logging
 import json
 
-from singular_api_client.helpers import CohortMetric
+from singular_api_client.helpers import CohortMetric, SkanEventsResponse
 from .params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
 from .exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
 from .helpers import ReportStatusResponse, CustomDimension, CohortMetricsResponse, \
@@ -173,6 +173,18 @@ class SingularClient(object):
         parsed_response = response.json()
         self._verify_legacy_error(parsed_response)
         return CohortMetricsResponse(parsed_response["value"])
+
+    def get_skan_events(self):
+        """
+        Use this endpoint to return all skan events for your account
+
+        :return: a new `SkanEventsResponse` instance
+        :rtype: SkanEventsResponse
+        """
+        response = self._api_get("v2.0/skan_events")
+        parsed_response = response.json()
+        self._verify_legacy_error(parsed_response)
+        return SkanEventsResponse(parsed_response["value"])
 
     def data_availability_status(self, data_date, format=Format.JSON, display_non_active_sources=False):
         """

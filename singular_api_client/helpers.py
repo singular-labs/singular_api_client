@@ -95,6 +95,45 @@ class CohortMetricsResponse(object):
             return "<Cohort Metrics: No Custom Metrics Found>"
 
 
+class SkanEvent(object):
+    def __init__(self, display_name, name):
+        self.display_name = display_name
+        self.name = name
+
+    @staticmethod
+    def parse_list(list_from_endpoint):
+        """
+        helper method to parse skan events list from the `skan_events` endpoint
+        :rtype: list[SkanEvent]
+        """
+        ret = []
+        for value in list_from_endpoint:
+            ret.append(SkanEvent(value["display_name"], value["name"]))
+        return ret
+
+    def __repr__(self):
+        return "<SkanEvent: %(display_name)s (name=%(name)s)>" % dict(display_name=self.display_name,
+                                                                      name=self.name)
+
+    def __str__(self):
+        return self.name
+
+
+class SkanEventsResponse(object):
+    def __init__(self, value_from_endpoint):
+        self.events = SkanEvent.parse_list(value_from_endpoint["skan_events"])
+
+    def __repr__(self):
+        if len(self.events) > 0:
+            lines = ["<skan_events = ["]
+            for event in self.events:
+                lines.append("\t%s" % repr(event))
+            lines.append("]>")
+            return "\n".join(lines)
+        else:
+            return "<Skan Events: No Events Found>"
+
+
 class DataSourceAvailabilityResponse(object):
     def __init__(self, username, status, is_empty_data, is_active_last_30_days, last_updated_utc,
                  source, is_available, **extra):
