@@ -144,8 +144,8 @@ start_date = "2021-02-01"
 end_date = "2021-02-01"
 dimensions = ["app", "source"]
 metrics = ["skan_installs"]
-report_id = client.create_async_skadnetwork_raw_report(start_date=start_date,end_date=end_date,
-                                                        dimensions=dimensions, metrics=metrics)
+report_id = client.create_async_skadnetwork_raw_report(start_date=start_date, end_date=end_date,
+                                                       dimensions=dimensions, metrics=metrics)
 print("Report ID: %s" % repr(report_id))
 ```
 Output:
@@ -162,8 +162,8 @@ start_date = "2021-02-01"
 end_date = "2021-02-01"
 dimensions = ["app", "source"]
 metrics = ["custom_clicks", "skan_installs"]
-report_id = client.create_async_skadnetwork_report(start_date=start_date,end_date=end_date,
-                                                    dimensions=dimensions, metrics=metrics)
+report_id = client.create_async_skadnetwork_report(start_date=start_date, end_date=end_date,
+                                                   dimensions=dimensions, metrics=metrics)
 print("Report ID: %s" % repr(report_id))
 ```
 Output:
