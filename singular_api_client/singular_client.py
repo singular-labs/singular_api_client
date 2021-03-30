@@ -4,7 +4,7 @@ from requests.packages.urllib3.util.retry import Retry
 import logging
 import json
 
-from singular_api_client.helpers import CohortMetric, SkanEventsResponse
+from singular_api_client.helpers import CohortMetric, SkanEventsResponse, SkanEvent
 from .params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
 from .exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
 from .helpers import ReportStatusResponse, CustomDimension, CohortMetricsResponse, \
@@ -129,8 +129,7 @@ class SingularClient(object):
         """
 
         query_dict = self._build_skan_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                      [], None, None, app,
-                                                      source, None, time_breakdown, country_code_format,
+                                                      app, source, time_breakdown, country_code_format,
                                                       filters, skadnetwork_date_type, None, **kwargs)
 
         response = self._api_post("v2.0/create_async_skadnetwork_raw_report", data=query_dict)
@@ -177,8 +176,8 @@ class SingularClient(object):
         """
 
         query_dict = self._build_skan_reporting_query(start_date, end_date, format, dimensions, metrics,
-                                                      [], None, None, app, source, None, time_breakdown,
-                                                      country_code_format, filters, skadnetwork_date_type, skan_events, **kwargs)
+                                                      app, source, time_breakdown, country_code_format,
+                                                      filters, skadnetwork_date_type, skan_events, **kwargs)
 
         response = self._api_post("v2.0/create_async_skadnetwork_report", data=query_dict)
         parsed_response = response.json()
@@ -365,20 +364,21 @@ class SingularClient(object):
         query_dict.update(kwargs)
         return query_dict
 
-    def _build_skan_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
-                               cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
-                               country_code_format, filters, skadnetwork_date_type, skan_events, **kwargs):
-        query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
-                               cohort_metrics, cohort_periods, app, source, display_alignment, time_breakdown,
-                               country_code_format, filters, **kwargs)
+    @classmethod
+    def _build_skan_reporting_query(cls, start_date, end_date, format, dimensions, metrics, app, source, time_breakdown,
+                                    country_code_format, filters, skadnetwork_date_type, skan_events, **kwargs):
+        query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, metrics, [], None, None, app,
+                                                source, None, time_breakdown,
+                                                country_code_format, filters, **kwargs)
 
         if skadnetwork_date_type:
             query_dict.update({'skadnetwork_date_type': skadnetwork_date_type})
         if skan_events:
             if isinstance(skan_events, list):
-                skan_events = [(i.name if isinstance(i, CohortMetric) else i) for i in skan_events]
+                skan_events = [(event.name if isinstance(event, SkanEvent) else event) for event in skan_events]
                 skan_events = ",".join(skan_events)
             query_dict.update({'skan_events': skan_events})
+
         return query_dict
 
     @staticmethod

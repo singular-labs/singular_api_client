@@ -101,15 +101,12 @@ class SkanEvent(object):
         self.name = name
 
     @staticmethod
-    def parse_list(list_from_endpoint):
+    def parse_list(results):
         """
         helper method to parse skan events list from the `skan_events` endpoint
         :rtype: list[SkanEvent]
         """
-        ret = []
-        for value in list_from_endpoint:
-            ret.append(SkanEvent(value["display_name"], value["name"]))
-        return ret
+        return [SkanEvent(value["display_name"], value["name"]) for value in results]
 
     def __repr__(self):
         return "<SkanEvent: %(display_name)s (name=%(name)s)>" % dict(display_name=self.display_name,
@@ -124,14 +121,11 @@ class SkanEventsResponse(object):
         self.events = SkanEvent.parse_list(value_from_endpoint["skan_events"])
 
     def __repr__(self):
-        if len(self.events) > 0:
-            lines = ["<skan_events = ["]
-            for event in self.events:
-                lines.append("\t%s" % repr(event))
-            lines.append("]>")
-            return "\n".join(lines)
-        else:
-            return "<Skan Events: No Events Found>"
+        if len(self.events) == 0:
+            return "<skan_events: No Events Found>"
+
+        lines = [repr(event) for event in self.events]
+        return "<skan_events = [\n%s]\n>" % ("\n".join(lines))
 
 
 class DataSourceAvailabilityResponse(object):
