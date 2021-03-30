@@ -134,6 +134,43 @@ Output:
 ```
 Report ID: u'd5a36f830ad305475dac28eff0e36174'
 ```
+
+### Enqueue async skadnetwork raw report
+```python
+from singular_api_client.singular_client import SingularClient
+API_KEY = "YOUR API KEY"
+client = SingularClient(API_KEY)
+start_date = "2021-02-01"
+end_date = "2021-02-01"
+dimensions = ["app", "source"]
+metrics = ["skan_installs"]
+report_id = client.create_async_skadnetwork_raw_report(start_date=start_date, end_date=end_date,
+                                                       dimensions=dimensions, metrics=metrics)
+print("Report ID: %s" % repr(report_id))
+```
+Output:
+```
+Report ID: u'f6a36f900ad305475dac28eff0e36174'
+```
+
+### Enqueue async skadnetwork report
+```python
+from singular_api_client.singular_client import SingularClient
+API_KEY = "YOUR API KEY"
+client = SingularClient(API_KEY)
+start_date = "2021-02-01"
+end_date = "2021-02-01"
+dimensions = ["app", "source"]
+metrics = ["custom_clicks", "skan_installs"]
+report_id = client.create_async_skadnetwork_report(start_date=start_date, end_date=end_date,
+                                                   dimensions=dimensions, metrics=metrics)
+print("Report ID: %s" % repr(report_id))
+```
+Output:
+```
+Report ID: u'h7a37f800ad405475dac90eff0e36174'
+```
+
 ### Check status of async report
 ```python
 from singular_api_client.singular_client import SingularClient
@@ -170,6 +207,22 @@ dimensions = [Dimensions.COUNTRY_FIELD, Dimensions.ADN_CAMPAIGN_NAME, "8e10d3891
 
 Can be configured in Singular [Custom Dimensions Configuration](https://app.singular.net/#/custom-dimensions).
 
+### SKAdNetwork Events
+You can get the available SKAdNetwork events by using the `get_skan_events` method, for example:
+```python
+from singular_api_client.singular_client import SingularClient
+API_KEY = "YOUR API KEY"
+client = SingularClient(API_KEY)
+skan_events = client.get_skan_events()
+print("SKAdNetwork Events: %s" % repr(skan_events))
+```
+Output:
+```
+<skan_events = [
+	<SkanEvent: session_count (name=b6d3h439fj3nf83jdf9dy3h4j8gh)>
+	<SkanEvent: time_spent (name=c6d3h434fj3n8u3kdf9dy3h4j9dsh)>
+]>
+```
 
 ### Cohort Metrics & Periods
 You can get the available cohort metrics & periods by using the `get_cohort_metrics` method, for example:
