@@ -141,6 +141,9 @@ class SingularClient(object):
                                         dimensions=(Dimensions.APP, Dimensions.SOURCE,
                                                     Dimensions.SKAN_CAMPAIGN_ID, Dimensions.SKAN_CONVERSION_VALUE),
                                         metrics=(Metrics.SKAN_INSTALLS,),
+                                        discrepancy_metrics=None,
+                                        cohort_metrics=None,
+                                        cohort_periods=None,
                                         source=None,
                                         app=None,
                                         time_breakdown=TimeBreakdown.ALL,
@@ -159,6 +162,12 @@ class SingularClient(object):
         :param format: Format for returned results, for example Format.CSV
         :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source, Dimensions.SKAN_CAMPAIGN_ID]
         :param metrics: A list of metrics, for example [Metrics.SKAN_INSTALLS]
+        :param discrepancy_metrics: List of metrics that may help detect discrepancies between Ad Networks
+         and Attribution providers, for example [DiscrepancyMetrics.TRACKER_INSTALLS]
+        :param cohort_metrics: list of cohorted metrics by name or ID; A full list can be retrieved through
+         the Cohorted Metrics endpoint
+        :param cohort_periods: list of cohorted periods; A full list can be retrieved through the Cohorted Metrics
+          endpoint
         :param source: optional list of source names to filter by
         :param app: optional list of app names to filter by
         :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
@@ -177,7 +186,11 @@ class SingularClient(object):
 
         query_dict = self._build_skan_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                       app, source, time_breakdown, country_code_format,
-                                                      filters, skadnetwork_date_type, skan_events, **kwargs)
+                                                      filters, skadnetwork_date_type, skan_events,
+                                                      discrepancy_metrics=discrepancy_metrics,
+                                                      cohort_metrics=cohort_metrics,
+                                                      cohort_periods=cohort_periods,
+                                                      **kwargs)
 
         response = self._api_post("v2.0/create_async_skadnetwork_report", data=query_dict)
         parsed_response = response.json()
@@ -366,7 +379,11 @@ class SingularClient(object):
 
     @classmethod
     def _build_skan_reporting_query(cls, start_date, end_date, format, dimensions, metrics, app, source, time_breakdown,
-                                    country_code_format, filters, skadnetwork_date_type, skan_events, **kwargs):
+                                    country_code_format, filters, skadnetwork_date_type, skan_events,
+                                    discrepancy_metrics=None,
+                                    cohort_metrics=None,
+                                    cohort_periods=None,
+                                    **kwargs):
         query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, metrics, [], None, None, app,
                                                 source, None, time_breakdown,
                                                 country_code_format, filters, **kwargs)
