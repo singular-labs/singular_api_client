@@ -141,7 +141,7 @@ class SingularClient(object):
                                         dimensions=(Dimensions.APP, Dimensions.SOURCE,
                                                     Dimensions.SKAN_CAMPAIGN_ID, Dimensions.SKAN_CONVERSION_VALUE),
                                         metrics=(Metrics.SKAN_INSTALLS,),
-                                        discrepancy_metrics=None,
+                                        discrepancy_metrics=[],
                                         source=None,
                                         app=None,
                                         time_breakdown=TimeBreakdown.ALL,
