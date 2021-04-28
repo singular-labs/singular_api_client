@@ -372,7 +372,7 @@ class SingularClient(object):
     @classmethod
     def _build_skan_reporting_query(cls, start_date, end_date, format, dimensions, metrics, app, source, time_breakdown,
                                     country_code_format, filters, skadnetwork_date_type, skan_events,
-                                    discrepancy_metrics=None,
+                                    discrepancy_metrics=[],
                                     **kwargs):
         query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
                                                 None, None, app, source, None, time_breakdown,
