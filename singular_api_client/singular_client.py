@@ -130,7 +130,7 @@ class SingularClient(object):
 
         query_dict = self._build_skan_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                       app, source, time_breakdown, country_code_format,
-                                                      filters, skadnetwork_date_type, None, **kwargs)
+                                                      filters, skadnetwork_date_type, **kwargs)
 
         response = self._api_post("v2.0/create_async_skadnetwork_raw_report", data=query_dict)
         parsed_response = response.json()
@@ -141,7 +141,7 @@ class SingularClient(object):
                                         dimensions=(Dimensions.APP, Dimensions.SOURCE,
                                                     Dimensions.SKAN_CAMPAIGN_ID, Dimensions.SKAN_CONVERSION_VALUE),
                                         metrics=(Metrics.SKAN_INSTALLS,),
-                                        discrepancy_metrics=[],
+                                        discrepancy_metrics=None,
                                         source=None,
                                         app=None,
                                         time_breakdown=TimeBreakdown.ALL,
@@ -149,6 +149,7 @@ class SingularClient(object):
                                         filters=None,
                                         skadnetwork_date_type=None,
                                         skan_events=None,
+                                        modeled_skan_custom_events=None,
                                         **kwargs
                                         ):
         """
@@ -180,7 +181,8 @@ class SingularClient(object):
 
         query_dict = self._build_skan_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                       app, source, time_breakdown, country_code_format,
-                                                      filters, skadnetwork_date_type, skan_events,
+                                                      filters, skadnetwork_date_type, skan_events=skan_events,
+                                                      modeled_skan_custom_events=modeled_skan_custom_events,
                                                       discrepancy_metrics=discrepancy_metrics,
                                                       **kwargs)
 
@@ -325,12 +327,12 @@ class SingularClient(object):
         if filters is None:
             filters = []
 
-        if (cohort_metrics or cohort_periods) and (not cohort_metrics or not cohort_periods):
+        if cohort_metrics and not cohort_periods:
             raise ArgumentValidationException("`cohort_metrics` must be used with `cohort_periods`")
 
         dimensions_request = ",".join(dimensions)
         metrics_request = ",".join(metrics)
-        discrepancy_metrics_request = ",".join(discrepancy_metrics)
+        discrepancy_metrics_request = ",".join(discrepancy_metrics) if discrepancy_metrics else ""
         query_dict = dict(
             start_date=start_date,
             end_date=end_date,
@@ -371,20 +373,29 @@ class SingularClient(object):
 
     @classmethod
     def _build_skan_reporting_query(cls, start_date, end_date, format, dimensions, metrics, app, source, time_breakdown,
-                                    country_code_format, filters, skadnetwork_date_type, skan_events,
-                                    discrepancy_metrics=[],
+                                    country_code_format, filters, skadnetwork_date_type, skan_events=None,
+                                    modeled_skan_custom_events=None, discrepancy_metrics=None,
+                                    cohort_metrics=None, cohort_periods=None,
                                     **kwargs):
         query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
-                                                None, None, app, source, None, time_breakdown,
+                                                cohort_metrics, cohort_periods, app, source, None, time_breakdown,
                                                 country_code_format, filters, **kwargs)
 
         if skadnetwork_date_type:
             query_dict.update({'skadnetwork_date_type': skadnetwork_date_type})
+
         if skan_events:
             if isinstance(skan_events, list):
                 skan_events = [(event.name if isinstance(event, SkanEvent) else event) for event in skan_events]
                 skan_events = ",".join(skan_events)
+
             query_dict.update({'skan_events': skan_events})
+
+        if modeled_skan_custom_events:
+            if isinstance(modeled_skan_custom_events, list):
+                modeled_skan_custom_events = ",".join(modeled_skan_custom_events)
+
+            query_dict.update({'modeled_skan_custom_events': modeled_skan_custom_events})
 
         return query_dict
 
