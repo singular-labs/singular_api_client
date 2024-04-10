@@ -150,7 +150,7 @@ class SingularClient(object):
                                     **kwargs
                                     ):
         """
-        Use this endpoint to run custom queries in the Singular platform for aggregated unified  data without
+        Use this endpoint to run custom queries in the Singular platform for aggregated unified data without
          keeping a live connection throughout the request
 
         :param start_date: "YYYY-mm-dd" format date
@@ -158,13 +158,13 @@ class SingularClient(object):
         :param format: Format for returned results, for example Format.JSON
         :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source]
         :param metrics: A list of metrics, for example [Metrics.UNIFIED_INSTALLS]
-        :param cohort_metrics: list of cohorted metrics by name or ID
-        :param cohort_periods: list of cohorted periods
-        :param source: optional list of source names to filter by
-        :param app: optional list of app names to filter by
+        :param cohort_metrics: List of cohorted metrics by name or ID
+        :param cohort_periods: List of cohorted periods
+        :param source: optional List of source names to filter by
+        :param app: optional List of app names to filter by
         :param time_breakdown: Break results by the requested time period, for example TimeBreakdown.DAY
         :param country_code_format: Country code formatting option, for example CountryCodeFormat.ISO3
-        :param filters: a JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
+        :param filters: A JSON encoded list of filters. Can be used to apply more complex filters than simply filtering
           by app or source. The relation between different elements of the list is an AND relation.
           A full list of the dimensions you can filter by and potential values can be retrieved from the
           `get_reporting_filters` endpoint.
