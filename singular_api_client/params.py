@@ -46,7 +46,12 @@ class Dimensions(object):
     BID_AMOUNT = "bid_amount"
     ORIGINAL_BID_AMOUNT = "original_bid_amount"
     ORIGINAL_METADATA_CURRENCY = "original_metadata_currency"
+    ORGANIZATION_CURRENCY = "organization_currency"
     MIN_ROAS = "min_roas"
+    OPT_IN = "opt_in"
+    DATA_SOURCE_NAME = "data_source_name"
+    FPS_SUSPICIOUS_REASON = "fps_suspicious_reason"
+    FPS_REJECTION_REASON = "fps_rejection_reason"
 
     TRACKER_NAME = "tracker_name"
     RETENTION = "retention"
@@ -56,17 +61,28 @@ class Dimensions(object):
     # ------ SKAN ------
     SKAN_CAMPAIGN_ID = "skan_campaign_id"
     SKAN_CONVERSION_VALUE = "skan_conversion_value"
+    SKAN_UNIFIED_CONVERSION_VALUE = 'skan_unified_conversion_value'
+    SKAN_VERSION = "skan_version"
+    SKAN_VIEW_THROUGH = "skan_view_through"
 
 
 class Metrics(object):
     ADN_IMPRESSIONS = "adn_impressions"
     ADN_COST = "adn_cost"
     ADN_ORIGINAL_COST = "adn_original_cost"
+    NON_CUSTOM_COST = "non_custom_cost"
     ADN_ESTIMATED_TOTAL_CONVERSIONS = "adn_estimated_total_conversions"
     CUSTOM_CLICKS = "custom_clicks"
     CUSTOM_INSTALLS = "custom_installs"
     SKAN_INSTALLS = "skan_installs"
     UNIFIED_INSTALLS = "unified_installs"
+    TRACKER_REENGAGEMENTS = "tracker_reengagements"
+    TOTAL_TRACKER_INSTALLS = "total_tracker_installs"
+    TOTAL_WEB_CONVERSIONS = "total_web_conversions"
+    REJECTED_TRACKER_INSTALLS = "rejected_tracker_installs"
+    SUSPICIOUS_TRACKER_INSTALLS = "suspicious_tracker_installs"
+    EST_FRAUD_SAVED_COST = "est_fraud_saved_cost"
+
     UNIFIED_ECPI = "unified_ecpi"
     UNIFIED_CVR = "unified_cvr"
     UNIFIED_OCVR = "unified_ocvr"
@@ -77,6 +93,12 @@ class Metrics(object):
     ECPM = "ecpm"
     ECPC = "ecpc"
 
+class CohortMetrics(object):
+    REVENUE = "revenue"
+    AD_REVENUE = "ad_revenue"
+    UNIFIED_REVENUE = "unified_revenue"
+    RETAINED_USERS = "retained_users"
+    RETENTION_RATE = "retention_rate"
 
 class DiscrepancyMetrics(object):
     ADN_CLICKS = "adn_clicks"
