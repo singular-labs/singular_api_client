@@ -376,13 +376,10 @@ class SingularClient(object):
         dimensions_request = ",".join(dimensions)
         metrics_request = ",".join(metrics)
         discrepancy_metrics_request = ",".join(discrepancy_metrics) if discrepancy_metrics else ""
-        creatives_ai_dimensions = kwargs.get(ApiParams.CREATIVES_AI_DIMENSIONS)
-        creatives_ai_dimensions_request = ",".join(creatives_ai_dimensions) if creatives_ai_dimensions else ""
         query_dict = dict(
             start_date=start_date,
             end_date=end_date,
             dimensions=dimensions_request,
-            creatives_ai_dimensions=creatives_ai_dimensions_request,
             metrics=metrics_request,
             discrepancy_metrics=discrepancy_metrics_request,
             display_alignment=display_alignment,
@@ -413,6 +410,10 @@ class SingularClient(object):
             query_dict.update({'cohort_periods': cohort_periods})
         if filters:
             query_dict["filters"] = json.dumps(filters)
+
+        creatives_ai_dimensions = kwargs.get(ApiParams.CREATIVES_AI_DIMENSIONS)
+        if creatives_ai_dimensions:
+            query_dict[ApiParams.CREATIVES_AI_DIMENSIONS] = ",".join(creatives_ai_dimensions)
 
         query_dict.update(kwargs)
         return query_dict
