@@ -137,3 +137,7 @@ class Format(object):
 
 
 Format.__ALL_OPTIONS__ = [Format.JSON, Format.CSV]
+
+
+class ApiParams(object):
+    CREATIVES_AI_DIMENSIONS = 'creatives_ai_dimensions'
