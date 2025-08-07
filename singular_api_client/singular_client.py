@@ -5,7 +5,7 @@ import logging
 import json
 
 from singular_api_client.helpers import CohortMetric, SkanEventsResponse, SkanEvent
-from .params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics
+from .params import Format, Dimensions, DiscrepancyMetrics, TimeBreakdown, CountryCodeFormat, Metrics, ApiParams
 from .exceptions import ArgumentValidationException, APIException, UnexpectedAPIException
 from .helpers import ReportStatusResponse, CustomDimension, CohortMetricsResponse, \
     DataAvailabilityResponse
@@ -43,7 +43,6 @@ class SingularClient(object):
     def create_async_report(self, start_date, end_date,
                             format=Format.JSON,
                             dimensions=(Dimensions.APP, Dimensions.OS, Dimensions.SOURCE),
-                            creatives_ai_dimensions=None,
                             metrics=(Metrics.ADN_COST, Metrics.ADN_IMPRESSIONS),
                             discrepancy_metrics=(DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS),
                             cohort_metrics=None,
@@ -64,7 +63,6 @@ class SingularClient(object):
         :param end_date: "YYYY-mm-dd" format date
         :param format: Format for returned results, for example Format.CSV
         :param dimensions: A list of dimensions, for example [Dimensions.APP, Dimensions.Source]
-        :param creatives_ai_dimensions: List of AI dimensions to include for Creative IQ feature.
         :param metrics: A list of metrics, for example [Metrics.ADN_IMPRESSIONS, Metrics.ADN_COST]
         :param discrepancy_metrics: List of metrics that may help detect discrepancies between Ad Networks
          and Attribution providers, for example [DiscrepancyMetrics.ADN_CLICKS, DiscrepancyMetrics.ADN_INSTALLS]
@@ -85,8 +83,8 @@ class SingularClient(object):
         :return: report_id
         """
 
-        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, creatives_ai_dimensions,
-                                                 metrics, discrepancy_metrics, cohort_metrics, cohort_periods, app,
+        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
+                                                 discrepancy_metrics, cohort_metrics, cohort_periods, app,
                                                  source, display_alignment, time_breakdown, country_code_format,
                                                  filters, **kwargs)
 
@@ -172,7 +170,7 @@ class SingularClient(object):
           `get_reporting_filters` endpoint.
         :return: report_id
         """
-        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, None, metrics,
+        query_dict = self._build_reporting_query(start_date, end_date, format, dimensions, metrics,
                                                  None, cohort_metrics, cohort_periods, app, source,
                                                  None, time_breakdown, country_code_format, filters,
                                                  **kwargs)
@@ -359,8 +357,8 @@ class SingularClient(object):
             return "false"
 
     @classmethod
-    def _build_reporting_query(cls, start_date, end_date, format, dimensions, creatives_ai_dimensions, metrics,
-                               discrepancy_metrics, cohort_metrics, cohort_periods, app, source, display_alignment,
+    def _build_reporting_query(cls, start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
+                               cohort_metrics, cohort_periods, app, source, display_alignment,
                                time_breakdown, country_code_format, filters, **kwargs):
         """
         build reporting query format that can be used by either the `create_async_report` or `reporting` endpoints
@@ -376,9 +374,10 @@ class SingularClient(object):
             raise ArgumentValidationException("`cohort_metrics` must be used with `cohort_periods`")
 
         dimensions_request = ",".join(dimensions)
-        creatives_ai_dimensions_request = ",".join(creatives_ai_dimensions) if creatives_ai_dimensions else ""
         metrics_request = ",".join(metrics)
         discrepancy_metrics_request = ",".join(discrepancy_metrics) if discrepancy_metrics else ""
+        creatives_ai_dimensions = kwargs.get(ApiParams.CREATIVES_AI_DIMENSIONS)
+        creatives_ai_dimensions_request = ",".join(creatives_ai_dimensions) if creatives_ai_dimensions else ""
         query_dict = dict(
             start_date=start_date,
             end_date=end_date,
@@ -424,7 +423,7 @@ class SingularClient(object):
                                     modeled_skan_custom_events=None, discrepancy_metrics=None,
                                     cohort_metrics=None, cohort_periods=None,
                                     **kwargs):
-        query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, None, metrics, discrepancy_metrics,
+        query_dict = cls._build_reporting_query(start_date, end_date, format, dimensions, metrics, discrepancy_metrics,
                                                 cohort_metrics, cohort_periods, app, source, None, time_breakdown,
                                                 country_code_format, filters, **kwargs)
 
