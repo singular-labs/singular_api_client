@@ -411,7 +411,7 @@ class SingularClient(object):
         if filters:
             query_dict["filters"] = json.dumps(filters)
 
-        creatives_ai_dimensions = kwargs.get(ApiParams.CREATIVES_AI_DIMENSIONS)
+        creatives_ai_dimensions = kwargs.pop(ApiParams.CREATIVES_AI_DIMENSIONS)
         if creatives_ai_dimensions:
             query_dict[ApiParams.CREATIVES_AI_DIMENSIONS] = ",".join(creatives_ai_dimensions)
 
