@@ -411,9 +411,10 @@ class SingularClient(object):
         if filters:
             query_dict["filters"] = json.dumps(filters)
 
-        creatives_ai_dimensions = kwargs.pop(ApiParams.CREATIVES_AI_DIMENSIONS)
-        if creatives_ai_dimensions:
-            query_dict[ApiParams.CREATIVES_AI_DIMENSIONS] = ",".join(creatives_ai_dimensions)
+        if ApiParams.CREATIVES_AI_DIMENSIONS in kwargs:
+            creatives_ai_dimensions = kwargs.pop(ApiParams.CREATIVES_AI_DIMENSIONS)
+            if creatives_ai_dimensions:
+                query_dict[ApiParams.CREATIVES_AI_DIMENSIONS] = ",".join(creatives_ai_dimensions)
 
         query_dict.update(kwargs)
         return query_dict
