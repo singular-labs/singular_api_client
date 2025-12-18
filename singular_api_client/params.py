@@ -82,6 +82,10 @@ class Metrics(object):
     REJECTED_TRACKER_INSTALLS = "rejected_tracker_installs"
     SUSPICIOUS_TRACKER_INSTALLS = "suspicious_tracker_installs"
     EST_FRAUD_SAVED_COST = "est_fraud_saved_cost"
+    MTA_INSTALLS = "mta_installs"
+    ASSISTED_INSTALLS = "assisted_installs"
+    SINGLE_ATTRIBUTED_INSTALLS = "single_attributed_installs"
+    CO_ATTRIBUTED_INSTALLS = "co_attributed_installs"
 
     UNIFIED_ECPI = "unified_ecpi"
     UNIFIED_CVR = "unified_cvr"
