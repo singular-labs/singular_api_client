@@ -22,17 +22,19 @@ For more information please visit our github repo: https://github.com/singular-l
         'Tracker': 'https://github.com/singular-labs/singular_api_client/issues',
     },
     install_requires=[
-        'requests',
+        'requests>=2.26.0',
+        'urllib3>=1.26.0',
         'pytz',
         'retrying',
     ],
-    extras_require={':python_version == "2.7"': ['futures']},
+    python_requires='>=3.8',
     classifiers=[
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ]
 )
